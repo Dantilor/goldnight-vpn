@@ -1,0 +1,150 @@
+import type { ApiEnv } from '@goldnight/config';
+import type { DataLayer, SubscriptionNotificationTypeName } from '../../lib/data-layer.js';
+
+const DAY_MS = 86_400_000;
+
+function escapeHtml(s: string): string {
+  return s
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;');
+}
+
+/** Build Mini App HTTPS URL with hash route (Telegram `web_app` buttons). */
+export function miniAppWebUrl(env: ApiEnv, route: string): string {
+  const base = env.TELEGRAM_WEBAPP_URL.replace(/\/+$/, '');
+  const r = route.replace(/^\//, '');
+  return `${base}/#/${r}`;
+}
+
+function calendarDaysFromTodayTo(endsAt: Date): number {
+  const end = new Date(endsAt);
+  const e = Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate());
+  const t = new Date();
+  const s = Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate());
+  return Math.round((e - s) / DAY_MS);
+}
+
+export class SubscriptionTelegramNotifier {
+  constructor(
+    private readonly env: ApiEnv,
+    private readonly dataLayer: DataLayer
+  ) {}
+
+  private botConfigured(): boolean {
+    return Boolean(this.env.TELEGRAM_BOT_TOKEN);
+  }
+
+  private async tgSend(chatId: string, text: string, replyMarkup?: { inline_keyboard: unknown[][] }): Promise<void> {
+    const token = this.env.TELEGRAM_BOT_TOKEN;
+    if (!token) return;
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text,
+        parse_mode: 'HTML',
+        disable_web_page_preview: true,
+        ...(replyMarkup ? { reply_markup: replyMarkup } : {})
+      })
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Telegram sendMessage failed: ${res.status} ${body}`);
+    }
+  }
+
+  /**
+   * After YooKassa webhook activated subscription (DB row exists). Idempotent via notification row.
+   */
+  async notifyPaymentSuccess(userId: string): Promise<void> {
+    if (!this.botConfigured()) return;
+    const sub = await this.dataLayer.getActiveSubscriptionByUserId(userId);
+    if (!sub || sub.status !== 'active') return;
+    const reserved = await this.dataLayer.tryCreateSubscriptionNotificationRecord({
+      userId,
+      subscriptionId: sub.id,
+      type: 'payment_success'
+    });
+    if (!reserved) return;
+    const user = await this.dataLayer.getUserById(userId);
+    if (!user) return;
+    const ends = sub.endsAt.toLocaleDateString('ru-RU', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+    const text = `<b>Подписка активирована</b>\n\nОплата прошла успешно.\nВаш тариф: ${escapeHtml(sub.plan.name)}\nДоступ действует до ${escapeHtml(ends)}.`;
+    const markup = {
+      inline_keyboard: [
+        [
+          { text: 'Mini App', web_app: { url: miniAppWebUrl(this.env, 'home') } },
+          { text: 'Открыть VPN', web_app: { url: miniAppWebUrl(this.env, 'connect') } }
+        ]
+      ]
+    };
+    try {
+      await this.tgSend(user.telegramUserId, text, markup);
+    } catch {
+      await this.dataLayer.deleteSubscriptionNotificationRecord(sub.id, 'payment_success').catch(() => undefined);
+    }
+  }
+
+  /** Scan active subscriptions and send 5d / 1d reminders once per subscription per type. */
+  async runExpiryReminderPass(): Promise<void> {
+    if (!this.botConfigured()) return;
+    const rows = await this.dataLayer.listActiveSubscriptionsWithTelegramForReminders();
+    for (const row of rows) {
+      if (!row.telegramUserId) continue;
+      const days = calendarDaysFromTodayTo(row.endsAt);
+      if (days === 5) {
+        await this.trySendReminder(row, 'expires_in_5_days', {
+          title: 'Подписка скоро закончится',
+          body: 'До окончания подписки осталось 5 дней.\nПродлите доступ заранее, чтобы не потерять подключение.',
+          buttonText: 'Продлить подписку'
+        });
+      } else if (days === 1) {
+        await this.trySendReminder(row, 'expires_in_1_day', {
+          title: 'Подписка заканчивается завтра',
+          body: 'До окончания подписки остался 1 день.\nЧтобы доступ не прерывался, продлите подписку заранее.',
+          buttonText: 'Продлить подписку'
+        });
+      }
+    }
+  }
+
+  private async trySendReminder(
+    row: {
+      subscriptionId: string;
+      userId: string;
+      telegramUserId: string;
+      planName: string;
+      endsAt: Date;
+    },
+    type: SubscriptionNotificationTypeName,
+    copy: { title: string; body: string; buttonText: string }
+  ): Promise<void> {
+    const reserved = await this.dataLayer.tryCreateSubscriptionNotificationRecord({
+      userId: row.userId,
+      subscriptionId: row.subscriptionId,
+      type
+    });
+    if (!reserved) return;
+    const ends = row.endsAt.toLocaleDateString('ru-RU', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+    const text = `<b>${escapeHtml(copy.title)}</b>\n\n${escapeHtml(copy.body)}\n\nТариф: ${escapeHtml(row.planName)}\nДействует до ${escapeHtml(ends)}.`;
+    const markup = {
+      inline_keyboard: [[{ text: copy.buttonText, web_app: { url: miniAppWebUrl(this.env, 'plans') } }]]
+    };
+    try {
+      await this.tgSend(row.telegramUserId, text, markup);
+    } catch {
+      await this.dataLayer.deleteSubscriptionNotificationRecord(row.subscriptionId, type).catch(() => undefined);
+    }
+  }
+}

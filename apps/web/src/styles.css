@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  color: #e5e2e1;
+  background: #131313;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+:root {
+  --gn-surface: #131313;
+  --gn-surface-low: #1c1b1b;
+  --gn-surface-highest: #353534;
+  --gn-outline-soft: rgba(77, 70, 53, 0.15);
+  --gn-text-muted: #d0c5af;
+  --gn-gold: #f2ca50;
+  --gn-gold-deep: #d4af37;
+  /* Telegram / iOS safe areas (fallback 0) */
+  --gn-safe-top: max(0.75rem, env(safe-area-inset-top, 0px));
+  --gn-safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Mini App: keep content below Telegram header / notch */
+.gn-safe-top {
+  padding-top: var(--gn-safe-top);
+}
+
+.gn-safe-bottom {
+  padding-bottom: max(0.5rem, var(--gn-safe-bottom));
+}
+
+.gn-gold-gradient {
+  background: linear-gradient(135deg, var(--gn-gold) 0%, var(--gn-gold-deep) 100%);
+}
+
+@keyframes gn-toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes gn-sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.gn-animate-sheet {
+  animation: gn-sheet-in 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}

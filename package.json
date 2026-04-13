@@ -1,0 +1,33 @@
+{
+  "name": "goldnight-vpn",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Telegram Mini App VPN subscription monorepo",
+  "packageManager": "pnpm@10.33.0+sha512.10568bb4a6afb58c9eb3630da90cc9516417abebd3fabbe6739f0ae795728da1491e9db5a544c76ad8eb7570f5c4bb3d6c637b2cb41bfdcdb47fa823c8649319",
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "concurrently -n api,web -c cyan,magenta \"pnpm --filter @goldnight/api dev\" \"pnpm --filter @goldnight/web dev\"",
+    "dev:bot": "pnpm --filter @goldnight/bot dev",
+    "dev:full": "concurrently -n api,web,bot -c cyan,magenta,yellow \"pnpm --filter @goldnight/api dev\" \"pnpm --filter @goldnight/web dev\" \"pnpm --filter @goldnight/bot dev\"",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "format": "prettier --write .",
+    "db:generate": "pnpm --filter @goldnight/api prisma:generate",
+    "db:migrate": "pnpm --filter @goldnight/api prisma:migrate",
+    "db:seed": "pnpm --filter @goldnight/api prisma:seed"
+  },
+  "pnpm": {
+    "overrides": {
+      "rollup": "npm:@rollup/wasm-node@4.60.1"
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.1",
+    "@typescript-eslint/eslint-plugin": "^8.28.0",
+    "@typescript-eslint/parser": "^8.28.0",
+    "concurrently": "^9.2.1",
+    "eslint": "^9.23.0",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.2"
+  }
+}

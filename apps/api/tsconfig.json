@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "paths": {
+      "@goldnight/config": ["../../packages/config/dist/index.d.ts"],
+      "@goldnight/types": ["../../packages/types/dist/index.d.ts"]
+    }
+  },
+  "include": ["src"]
+}

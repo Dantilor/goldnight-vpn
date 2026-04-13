@@ -1,0 +1,192 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SubscriptionStatus {
+  pending
+  active
+  expired
+  cancelled
+}
+
+enum PaymentStatus {
+  pending
+  paid
+  failed
+  refunded
+}
+
+enum SubscriptionNotificationType {
+  payment_success
+  expires_in_5_days
+  expires_in_1_day
+}
+
+enum VpnAccessStatus {
+  active
+  expired
+  revoked
+}
+
+enum VpnAccessType {
+  subscription_url
+  plain_text_key
+  config_download
+  deep_link
+  qr_only
+}
+
+enum SupportStatus {
+  open
+  in_progress
+  resolved
+  closed
+}
+
+model User {
+  id              String           @id @default(cuid())
+  telegramUserId  String           @unique
+  username        String?
+  firstName       String?
+  lastName        String?
+  /** Email для фискального чека (YooKassa 54-ФЗ); только данные пользователя, без подстановок. */
+  email           String?
+  referralCode    String           @unique
+  referredById    String?
+  referredBy      User?            @relation("UserReferrals", fields: [referredById], references: [id])
+  referrals       User[]           @relation("UserReferrals")
+  subscriptions              Subscription[]
+  vpnAccesses                VpnAccess[]
+  payments                   Payment[]
+  subscriptionNotifications  SubscriptionNotification[]
+  supportRequests            SupportRequest[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@map("users")
+}
+
+model Plan {
+  id            String         @id @default(cuid())
+  code          String         @unique
+  name          String
+  // Legacy column; new catalog uses priceRub
+  priceUsd      Decimal        @db.Decimal(10, 2) @default(0)
+  priceRub      Decimal        @db.Decimal(12, 2)
+  deviceLimit   Int            @default(1)
+  subtitle      String?
+  sortOrder     Int            @default(0)
+  durationDays  Int
+  active        Boolean        @default(true)
+  subscriptions Subscription[]
+  vpnAccesses   VpnAccess[]
+  payments      Payment[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@map("plans")
+}
+
+model Subscription {
+  id                          String                       @id @default(cuid())
+  userId                      String
+  planId                      String
+  status                      SubscriptionStatus           @default(pending)
+  startedAt                   DateTime
+  endsAt                      DateTime
+  user                        User                         @relation(fields: [userId], references: [id])
+  plan                        Plan                         @relation(fields: [planId], references: [id])
+  subscriptionNotifications   SubscriptionNotification[]
+  createdAt                   DateTime                     @default(now())
+  updatedAt                   DateTime                     @updatedAt
+
+  @@map("subscriptions")
+}
+
+model SubscriptionNotification {
+  id               String                       @id @default(cuid())
+  userId           String
+  subscriptionId   String
+  type             SubscriptionNotificationType
+  sentAt           DateTime                     @default(now())
+  user             User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription     Subscription                 @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@unique([subscriptionId, type])
+  @@map("subscription_notifications")
+}
+
+model VpnAccess {
+  id                String          @id @default(cuid())
+  userId            String
+  planId            String?
+  provider          String
+  deviceFingerprint String          @default("__default__") @map("device_fingerprint")
+  accessType        VpnAccessType
+  value             String?
+  qrValue           String?
+  configFileUrl     String?
+  deepLinkTemplate  String?
+  status            VpnAccessStatus @default(active)
+  expiresAt         DateTime?
+  issuedAt          DateTime        @default(now())
+  notes             String?
+  metadata          Json?
+  externalAccessId  String?
+  user              User            @relation(fields: [userId], references: [id])
+  plan              Plan?           @relation(fields: [planId], references: [id])
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@unique([userId, provider, deviceFingerprint])
+  @@map("vpn_access")
+}
+
+model Payment {
+  id                String        @id @default(cuid())
+  userId            String
+  planId            String
+  amountUsd         Decimal       @db.Decimal(10, 2) @default(0)
+  amountRub         Decimal       @db.Decimal(12, 2)
+  currency          String
+  provider          String
+  providerPaymentId String?
+  status            PaymentStatus @default(pending)
+  metadata          Json?
+  user              User          @relation(fields: [userId], references: [id])
+  plan              Plan          @relation(fields: [planId], references: [id])
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@map("payments")
+}
+
+model Referral {
+  id              String   @id @default(cuid())
+  inviterUserId   String
+  invitedUserId   String
+  rewardGranted   Boolean  @default(false)
+  rewardAmountUsd Decimal? @db.Decimal(10, 2)
+  createdAt       DateTime @default(now())
+
+  @@map("referrals")
+}
+
+model SupportRequest {
+  id         String        @id @default(cuid())
+  userId     String
+  subject    String
+  message    String
+  status     SupportStatus @default(open)
+  resolvedAt DateTime?
+  user       User          @relation(fields: [userId], references: [id])
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@map("support_requests")
+}

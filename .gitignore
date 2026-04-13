@@ -1,0 +1,17 @@
+node_modules
+dist
+coverage
+.turbo
+.DS_Store
+*.log
+.env
+.env.local
+.pnpm-store
+apps/api/prisma/migrations
+
+.env
+.env.*
+!.env.example
+
+# Bot runtime state (first-welcome flags)
+apps/bot/data/
