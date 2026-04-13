@@ -59,6 +59,46 @@ a {
   background: linear-gradient(135deg, var(--gn-gold) 0%, var(--gn-gold-deep) 100%);
 }
 
+/* Home: premium slogan under quick links */
+.gn-home-slogan {
+  position: relative;
+  text-align: center;
+  padding-top: 2.25rem;
+  margin-top: 0.5rem;
+}
+
+.gn-home-slogan::before {
+  content: '';
+  display: block;
+  width: 2.5rem;
+  height: 1px;
+  margin: 0 auto 1.25rem;
+  background: linear-gradient(90deg, transparent, rgba(242, 202, 80, 0.45), transparent);
+}
+
+.gn-home-slogan__lead {
+  font-family: Manrope, Inter, system-ui, sans-serif;
+  font-weight: 600;
+  font-size: clamp(1.0625rem, 3.6vw, 1.1875rem);
+  line-height: 1.45;
+  letter-spacing: 0.02em;
+  background: linear-gradient(180deg, #fff9ed 0%, #f2ca50 42%, #b8962e 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.gn-home-slogan__accent {
+  display: block;
+  margin-top: 0.65rem;
+  font-family: Manrope, Inter, system-ui, sans-serif;
+  font-size: clamp(0.8125rem, 3vw, 0.875rem);
+  font-weight: 500;
+  font-style: italic;
+  letter-spacing: 0.06em;
+  color: rgba(208, 197, 175, 0.92);
+}
+
 @keyframes gn-toast-in {
   from {
     opacity: 0;

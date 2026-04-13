@@ -158,6 +158,13 @@ export function HomeScreen() {
         <p className="mt-2 px-0.5 text-[11px] text-on-surface-variant">
           {isTelegramMiniApp ? 'Поддержка — в разделе «Профиль».' : 'Личные разделы откроются после входа в Telegram.'}
         </p>
+
+        <div className="gn-home-slogan px-2">
+          <p className="gn-home-slogan__lead">
+            Возвращаем комфортный интернет
+            <span className="gn-home-slogan__accent">— тихо, стабильно, защищённо.</span>
+          </p>
+        </div>
       </section>
     </div>
   );
