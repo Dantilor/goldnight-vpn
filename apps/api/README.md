@@ -64,7 +64,11 @@ Env is validated in `@goldnight/config`. When `VPN_PROVIDER=xui`, these are requ
    `XUI_HOST=https://example.com:19002` and `XUI_BASE_PATH=/admin/source`  
    → same final URLs as (1).
 
-**Client-facing VLESS URI** uses `XUI_DOMAIN` + `XUI_PORT` + `XUI_VLESS_FLOW` + `XUI_VLESS_EXTRA_QUERY` (see `build-vless-uri.ts`; `encryption=none` is added by code — avoid duplicating the same keys in `XUI_VLESS_EXTRA_QUERY` when possible).
+**Client-facing VLESS URI** uses `XUI_DOMAIN` + `XUI_PORT` + `XUI_VLESS_FLOW` + `XUI_VLESS_EXTRA_QUERY` (see `build-vless-uri.ts`). **`encryption=none` and `flow` are always set by code**; any `encryption` / `flow` entries in `XUI_VLESS_EXTRA_QUERY` are ignored so clients do not get duplicate query keys.
+
+**TLS vs REALITY:** if the inbound uses **REALITY**, the share link must use `security=reality` and the panel’s `pbk` / `sid` / `sni` (copy the full query from 3x-ui). A URI with `security=tls` against a REALITY inbound (or the opposite) can show a connection in the app while **no usable internet traffic** passes — that is a **panel / Xray config mismatch**, not Mini App logic.
+
+**Routing / DNS / firewall** (Xray `outbounds`, server NAT, `iptables`, provider blocking 443) are **only on the VPS**; this repo does not deploy or validate them.
 
 **One link ≈ one device (3x-ui `limitIp`)** — New VLESS clients are created with `limitIp` from `XUI_CLIENT_LIMIT_IP` (default **1**): the panel limits how many distinct source IPs may use that client UUID at once, which blocks casually pasting the same `vless://` onto a second phone on a different IP. Set `XUI_CLIENT_LIMIT_IP=0` only if you need legacy unlimited behaviour. This is not a cryptographic device binding: CGNAT (many users behind one IP), mobile IP churn, or Xray/panel quirks can still differ from “exactly one handset”. Renew on the same device still updates expiry in DB without consuming an extra slot; clients created before this change keep their panel `limitIp` until re-issued (delete + provision) or edited in the panel.
 

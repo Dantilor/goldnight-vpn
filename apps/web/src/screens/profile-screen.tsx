@@ -140,7 +140,7 @@ export function ProfileScreen() {
       <section className="relative">
         <div className="flex items-center gap-5 p-2">
           <div className="relative">
-            <div className="h-20 w-20 overflow-hidden rounded-xl shadow-[0_0_20px_rgba(242,202,80,0.1)]">
+            <div className="h-[4.5rem] w-[4.5rem] overflow-hidden rounded-xl shadow-[0_0_20px_rgba(242,202,80,0.1)]">
               <div className="flex h-full w-full items-center justify-center bg-surface-container-highest text-sm text-on-surface-variant">
                 GN
               </div>
@@ -222,7 +222,7 @@ export function ProfileScreen() {
         </div>
       </section>
 
-      <section className="relative overflow-hidden rounded-2xl p-6 text-[#241a00] shadow-[0_15px_35px_rgba(242,202,80,0.2)] gn-gold-gradient">
+      <section className="relative overflow-hidden rounded-2xl p-5 text-[#241a00] shadow-[0_15px_35px_rgba(242,202,80,0.2)] gn-gold-gradient">
         <div className="absolute right-[-10%] top-[-20%] opacity-10">
           <span className="material-symbols-outlined text-[180px]" style={{ fontVariationSettings: "'FILL' 1" }}>
             shield

@@ -35,14 +35,20 @@ a {
   --gn-text-muted: #d0c5af;
   --gn-gold: #f2ca50;
   --gn-gold-deep: #d4af37;
-  /* Telegram / iOS safe areas (fallback 0) */
-  --gn-safe-top: max(0.75rem, env(safe-area-inset-top, 0px));
+  /* Top inset: 0 = только CSS fallback; в Mini App задаётся из JS (contentSafeAreaInset + буфер) */
+  --gn-app-padding-top: 0px;
   --gn-safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* Mini App: keep content below Telegram header / notch */
-.gn-safe-top {
-  padding-top: var(--gn-safe-top);
+/**
+ * Единый верхний отступ экрана: max(Telegram content inset из JS, safe-area, ~20px).
+ * Задаётся на <main> в AppShell.
+ */
+.gn-app-main-padding-top {
+  padding-top: max(
+    var(--gn-app-padding-top),
+    max(1.25rem, env(safe-area-inset-top, 0px))
+  );
 }
 
 .gn-safe-bottom {

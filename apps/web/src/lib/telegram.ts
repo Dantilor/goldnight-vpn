@@ -1,3 +1,5 @@
+type TelegramInset = { top: number; bottom: number; left: number; right: number };
+
 declare global {
   interface Window {
     Telegram?: {
@@ -12,8 +14,52 @@ declare global {
         setBackgroundColor?: (color: string) => void;
         setBottomBarColor?: (color: string) => void;
         openLink?: (url: string, options?: { try_instant_view?: boolean }) => void;
+        /** Область под системными элементами (notch и т.д.) */
+        safeAreaInset?: TelegramInset;
+        /** Отступ контента ниже шапки Mini App (Закрыть / меню) — приоритет для верхнего padding */
+        contentSafeAreaInset?: TelegramInset;
+        onEvent?: (eventType: string, eventHandler: () => void) => void;
+        offEvent?: (eventType: string, eventHandler: () => void) => void;
       };
     };
+  }
+}
+
+const GN_TOP_BUFFER_PX = 12;
+/** Если клиент не отдаёт insets (старый Telegram / десктоп) */
+const GN_TELEGRAM_FALLBACK_TOP_PX = 52;
+
+/**
+ * Вертикальный отступ под шапку Telegram Mini App + safe area.
+ * Пишет --gn-app-padding-top на :root; пересчитывать при смене viewport / safe area.
+ */
+export function applyMiniAppContentInsets(): void {
+  const wa = window.Telegram?.WebApp;
+  if (!wa) {
+    document.documentElement.style.setProperty('--gn-app-padding-top', '0px');
+    return;
+  }
+
+  const apply = () => {
+    const contentTop = Number(wa.contentSafeAreaInset?.top) || 0;
+    const safeTop = Number(wa.safeAreaInset?.top) || 0;
+    let px: number;
+    if (contentTop > 0) {
+      px = contentTop + GN_TOP_BUFFER_PX;
+    } else if (safeTop > 0) {
+      px = safeTop + 28;
+    } else {
+      px = GN_TELEGRAM_FALLBACK_TOP_PX;
+    }
+    document.documentElement.style.setProperty('--gn-app-padding-top', `${px}px`);
+  };
+
+  apply();
+
+  const handler = () => apply();
+  const events = ['safeAreaChanged', 'contentSafeAreaChanged', 'viewportChanged', 'safe_area_changed', 'viewport_changed'];
+  for (const ev of events) {
+    wa.onEvent?.(ev, handler);
   }
 }
 
@@ -46,6 +92,10 @@ export function setupTelegramStartupUi() {
   webApp.ready();
   webApp.expand();
   webApp.disableVerticalSwipes?.();
+  applyMiniAppContentInsets();
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => applyMiniAppContentInsets());
+  });
 
   // Keep Telegram chrome consistent with dark app shell.
   webApp.setHeaderColor?.('#131313');

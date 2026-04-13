@@ -13,7 +13,7 @@ export function SubscriptionScreen() {
     : 'Ваш доступ к сети Golden Night сейчас приостановлен. Продлите подписку для восстановления защиты.';
 
   return (
-    <div className="relative mx-auto max-w-lg space-y-6">
+    <div className="relative mx-auto max-w-lg space-y-8">
       {isPending ? (
         <div className="mb-4 rounded-xl border border-outline-variant/20 bg-surface-container-low p-4">
           <LoadingBlock text="Загрузка подписки..." />
@@ -26,7 +26,7 @@ export function SubscriptionScreen() {
         </div>
       ) : null}
 
-      <section className="mb-10">
+      <section className="mb-8">
         <div className="mb-2 flex items-center justify-between">
           <span className="font-body text-xs uppercase tracking-[0.2em] text-outline-variant">
             Статус аккаунта
@@ -53,7 +53,7 @@ export function SubscriptionScreen() {
       </section>
 
       <div className="mb-8 grid grid-cols-2 gap-4">
-        <div className="relative col-span-2 overflow-hidden rounded-xl border border-outline-variant/10 bg-surface-container-low p-6">
+        <div className="relative col-span-2 overflow-hidden rounded-xl border border-outline-variant/10 bg-surface-container-low p-5">
           <div className="relative z-10">
             <span className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-primary/60">
               Текущий план

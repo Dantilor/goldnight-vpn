@@ -170,7 +170,7 @@ export function ConnectScreen() {
   ] as const;
 
   return (
-    <main className="mx-auto min-h-screen max-w-md px-6 pb-32 pt-6">
+    <div className="mx-auto min-h-screen max-w-md px-1 pb-32 sm:px-0">
       <section className="mb-8 text-left">
         {subscription.isError ? (
           <div className="rounded-2xl border border-outline-variant/20 bg-surface-container-low p-5">
@@ -181,15 +181,15 @@ export function ConnectScreen() {
             <ErrorBlock text={(access.error as Error).message} />
           </div>
         ) : heroLoading ? (
-          <div className="rounded-2xl border border-outline-variant/15 bg-surface-container-low p-6">
+          <div className="rounded-2xl border border-outline-variant/15 bg-surface-container-low p-5">
             <LoadingBlock text="Загрузка статуса..." />
           </div>
         ) : hasActiveVpnAccess ? (
-          <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-b from-surface-container-low to-[#141414] p-6 shadow-[0_16px_48px_rgba(0,0,0,0.35)]">
-            <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-primary/[0.08] blur-2xl" />
-            <div className="relative flex gap-4">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-primary/25 bg-primary/10">
-                <span className="material-symbols-outlined text-3xl text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
+          <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-b from-surface-container-low to-[#141414] p-5 shadow-[0_16px_48px_rgba(0,0,0,0.35)]">
+            <div className="pointer-events-none absolute -right-8 -top-8 h-36 w-36 rounded-full bg-primary/[0.08] blur-2xl" />
+            <div className="relative flex gap-3">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-primary/25 bg-primary/10">
+                <span className="material-symbols-outlined text-2xl text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
                   verified_user
                 </span>
               </div>
@@ -490,6 +490,6 @@ export function ConnectScreen() {
           </div>
         </>
       )}
-    </main>
+    </div>
   );
 }

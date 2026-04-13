@@ -12,7 +12,7 @@ export function ReferralsScreen() {
   const earnedRewards = data?.filter((item) => item.rewardGranted).length ?? 0;
 
   return (
-    <main className="mx-auto max-w-md px-6 pb-32 pt-6">
+    <div className="mx-auto max-w-md px-1 pb-32 sm:px-0">
       <section className="mb-10">
         <div className="relative overflow-hidden rounded-xl border border-outline-variant/15 bg-surface-container-low p-8">
           <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/5 blur-3xl"></div>
@@ -111,6 +111,6 @@ export function ReferralsScreen() {
           <EmptyBlock title="Рефералов пока нет" description="Поделитесь кодом, чтобы начать получать реферальные начисления." />
         </div>
       ) : null}
-    </main>
+    </div>
   );
 }

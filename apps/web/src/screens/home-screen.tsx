@@ -40,7 +40,7 @@ export function HomeScreen() {
     status === 'active' ? 'Активна' : status === 'expired' ? 'Истекла' : 'Ожидание';
 
   const previewHero = (
-    <section className="rounded-xl border border-primary/20 bg-surface-container-low/80 p-4">
+    <section className="rounded-xl border border-primary/20 bg-surface-container-low/80 p-3.5">
       <p className="font-body text-[10px] font-semibold uppercase tracking-widest text-primary/80">
         Предпросмотр
       </p>
@@ -62,8 +62,8 @@ export function HomeScreen() {
   );
 
   return (
-    <div className="space-y-5">
-      <section className="space-y-1 text-center">
+    <div className="space-y-8">
+      <section className="space-y-1.5 text-center">
         <p className="font-body text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">
           GoldNight VPN
         </p>
@@ -80,8 +80,8 @@ export function HomeScreen() {
       {!isTelegramMiniApp ? previewHero : null}
 
       {/* Подписка: в Telegram — данные с API; вне Telegram — без персональных запросов */}
-      <section className="rounded-xl border border-outline-variant/20 bg-surface-container-low p-4 shadow-[0_20px_40px_rgba(0,0,0,0.25)]">
-        <div className="mb-3 flex items-start justify-between gap-3">
+      <section className="rounded-xl border border-outline-variant/20 bg-surface-container-low p-3.5 shadow-[0_20px_40px_rgba(0,0,0,0.25)]">
+        <div className="mb-2 flex items-start justify-between gap-3">
           <div className="min-w-0 space-y-0.5">
             <h2 className="font-body text-[10px] font-semibold uppercase tracking-widest text-on-surface-variant">
               Подписка
