@@ -6,6 +6,7 @@ import { MockVpnProvider } from './mock-vpn-provider.js';
 import { ManualVpnProvider } from './manual-vpn-provider.js';
 import { RealVpnProvider } from './real-vpn-provider.js';
 import { XuiVpnProvider } from './xui-vpn-provider.js';
+import { vlessShareLinkUsesXhttpTransport } from './xui/build-vless-uri.js';
 import { createXuiClientFromEnv } from './xui/xui-client.js';
 
 export function createVpnProvider(env: ApiEnv, db: PrismaClient, dataLayer: DataLayer): VpnProvider {
@@ -13,6 +14,9 @@ export function createVpnProvider(env: ApiEnv, db: PrismaClient, dataLayer: Data
     return new ManualVpnProvider(db);
   }
   if (env.VPN_PROVIDER === 'xui') {
+    const xhttp = vlessShareLinkUsesXhttpTransport(env.XUI_VLESS_EXTRA_QUERY);
+    const flowForClient =
+      !xhttp && env.XUI_VLESS_FLOW !== undefined && env.XUI_VLESS_FLOW !== '' ? env.XUI_VLESS_FLOW : undefined;
     const client = createXuiClientFromEnv({
       XUI_HOST: env.XUI_HOST!,
       XUI_BASE_PATH: env.XUI_BASE_PATH,
@@ -22,15 +26,13 @@ export function createVpnProvider(env: ApiEnv, db: PrismaClient, dataLayer: Data
       XUI_DOMAIN: env.XUI_DOMAIN!,
       XUI_PORT: env.XUI_PORT!,
       ...(env.XUI_CLIENT_LIMIT_IP !== undefined ? { XUI_CLIENT_LIMIT_IP: env.XUI_CLIENT_LIMIT_IP } : {}),
-      ...(env.XUI_VLESS_FLOW !== undefined && env.XUI_VLESS_FLOW !== ''
-        ? { XUI_VLESS_FLOW: env.XUI_VLESS_FLOW }
-        : {}),
+      ...(flowForClient !== undefined ? { XUI_VLESS_FLOW: flowForClient } : {}),
       ...(env.XUI_VLESS_EXTRA_QUERY !== undefined && env.XUI_VLESS_EXTRA_QUERY !== ''
         ? { XUI_VLESS_EXTRA_QUERY: env.XUI_VLESS_EXTRA_QUERY }
         : {})
     });
-    return env.XUI_VLESS_FLOW && env.XUI_VLESS_FLOW !== ''
-      ? new XuiVpnProvider(dataLayer, client, env.XUI_VLESS_FLOW)
+    return flowForClient !== undefined
+      ? new XuiVpnProvider(dataLayer, client, flowForClient)
       : new XuiVpnProvider(dataLayer, client);
   }
   if (env.VPN_PROVIDER === 'real') {

@@ -35,7 +35,8 @@ export class YooKassaPaymentService {
   constructor(
     private readonly env: ApiEnv,
     private readonly dataLayer: DataLayer,
-    private readonly subscriptionTelegramNotifier: SubscriptionTelegramNotifier | null
+    private readonly subscriptionTelegramNotifier: SubscriptionTelegramNotifier | null,
+    private readonly revokeAllVpnForUser?: (userId: string) => Promise<void>
   ) {}
 
   isConfigured(): boolean {
@@ -131,7 +132,7 @@ export class YooKassaPaymentService {
    */
   async handlePaymentSucceededNotification(
     yookassaPaymentId: string,
-    opts?: { onTelegramNotifyError?: (err: unknown) => void }
+    opts?: { onTelegramNotifyError?: (err: unknown) => void; onVpnRevokeError?: (err: unknown) => void }
   ): Promise<'processed' | 'ignored'> {
     const remote = await yookassaGetPayment(this.env, yookassaPaymentId);
     if (remote.status !== 'succeeded' || !remote.paid) {
@@ -157,6 +158,11 @@ export class YooKassaPaymentService {
     const claimed = await this.dataLayer.claimPaymentAsPaidIfPending(yookassaPaymentId);
     if (!claimed) {
       return 'ignored';
+    }
+    try {
+      await this.revokeAllVpnForUser?.(claimed.userId);
+    } catch (err) {
+      opts?.onVpnRevokeError?.(err);
     }
     await this.dataLayer.replaceActiveSubscriptionWithNewPlan(claimed.userId, claimed.planId);
     try {

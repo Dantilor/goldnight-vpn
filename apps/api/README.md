@@ -64,20 +64,21 @@ Env is validated in `@goldnight/config`. When `VPN_PROVIDER=xui`, these are requ
    `XUI_HOST=https://example.com:19002` and `XUI_BASE_PATH=/admin/source`  
    → same final URLs as (1).
 
-**Client-facing VLESS URI** uses `XUI_DOMAIN` + `XUI_PORT` + `XUI_VLESS_FLOW` + `XUI_VLESS_EXTRA_QUERY` (see `build-vless-uri.ts`). **`encryption=none` and `flow` are always set by code**; any `encryption` / `flow` entries in `XUI_VLESS_EXTRA_QUERY` are ignored so clients do not get duplicate query keys.
+**Client-facing VLESS URI** uses `XUI_DOMAIN` + `XUI_PORT` + `XUI_VLESS_EXTRA_QUERY` and optionally `XUI_VLESS_FLOW` (see `build-vless-uri.ts`). **`encryption=none` is always set**; `encryption` / `flow` inside `XUI_VLESS_EXTRA_QUERY` are stripped to avoid duplicates. If `XUI_VLESS_EXTRA_QUERY` contains **`type=xhttp`**, **`flow` is not appended** (XHTTP+TLS is not Vision/TCP). Copy the full query string from the 3x-ui share dialog for the inbound you use; after changing env, users should **re-provision** so `app_vpn_access_records.value` is rebuilt.
 
 **TLS vs REALITY:** if the inbound uses **REALITY**, the share link must use `security=reality` and the panel’s `pbk` / `sid` / `sni` (copy the full query from 3x-ui). A URI with `security=tls` against a REALITY inbound (or the opposite) can show a connection in the app while **no usable internet traffic** passes — that is a **panel / Xray config mismatch**, not Mini App logic.
 
 **Routing / DNS / firewall** (Xray `outbounds`, server NAT, `iptables`, provider blocking 443) are **only on the VPS**; this repo does not deploy or validate them.
 
-**3x-ui `limitIp` (IPs per VLESS UUID)** — New clients use `limitIp` from `XUI_CLIENT_LIMIT_IP` (default **0** = unlimited distinct source IPs per link). Set `XUI_CLIENT_LIMIT_IP=1` (or higher) to restrict sharing one `vless://` across many devices. Existing panel clients keep their old `limitIp` until re-issued or edited in the panel.
+**3x-ui `limitIp` (IPs per VLESS UUID)** — New clients use `limitIp` from `XUI_CLIENT_LIMIT_IP` (default **1**). Set `XUI_CLIENT_LIMIT_IP=0` for unlimited distinct source IPs per link. Existing panel clients keep their old `limitIp` until re-issued or edited in the panel.
 
-**Plan device slots** — `app_plans.device_limit`: **0** means no API-side slot cap (unlimited provision rows per user). Run `supabase/sql/009_plans_unlimited_devices.sql` or re-run `005_seed_plans_rub_v2.sql` on Supabase to align existing rows.
+**Subscription expiry + VPN** — A periodic job (`SUBSCRIPTION_EXPIRY_SWEEP_INTERVAL_MS`, default **10 minutes**) marks `app_subscriptions` with `ends_at <= now()` as `expired`, revokes all VPN access in 3x-ui + `app_vpn_access_records`, and sends an optional Telegram notice (type `subscription_expired_vpn_stopped`; run `supabase/sql/010_subscription_notification_expired_vpn.sql` on Supabase). `getActiveSubscriptionByUserId` only returns subscriptions with `ends_at > now()`, so `/me/vpn-access`, `/me/vpn/provision`, and `/me/vpn/connect-payload` do not serve VPN without a valid period. On successful YooKassa payment, VPN is revoked **before** the new subscription row is created so the user must **provision again** (new panel client / link).
+
+**Plan device slots** — Enforced by `app_plans.device_limit` and `provision` slot counting.
 
 ## Not Implemented Yet
 
-- Payments business logic and payment processing endpoints.
-- `GET /payments/status` returns `501 Not Implemented`.
+- Broader admin automation beyond current modules.
 
 ## Architecture Rules
 
@@ -146,5 +147,6 @@ Required environment variables:
 - `TELEGRAM_INITDATA_TTL_SECONDS`
 - `ADMIN_API_KEY`
 - `BOT_API_KEY`
+- Optional: `SUBSCRIPTION_REMINDER_INTERVAL_MS`, `SUBSCRIPTION_EXPIRY_SWEEP_INTERVAL_MS`
 
 If `TELEGRAM_BOT_TOKEN` is not set, API still starts, but `POST /auth/telegram` returns `503`.

@@ -8,6 +8,7 @@ import { createDataLayer } from './lib/data-layer.js';
 import { createRequireAuth } from './modules/auth/middleware.js';
 import { createVpnProvider } from './modules/vpn/provider-factory.js';
 import { VpnService } from './modules/vpn/vpn-service.js';
+import { startSubscriptionExpiryScheduler } from './jobs/subscription-expiry-scheduler.js';
 import { startSubscriptionReminderScheduler } from './jobs/subscription-reminder-scheduler.js';
 import { SubscriptionTelegramNotifier } from './modules/subscription-notify/subscription-telegram-notifier.js';
 import { registerModules } from './modules/index.js';
@@ -78,6 +79,15 @@ async function bootstrap() {
   startSubscriptionReminderScheduler({
     notifier: subscriptionTelegramNotifier,
     intervalMs: reminderEveryMs,
+    log: app.log
+  });
+
+  const expirySweepEveryMs = env.SUBSCRIPTION_EXPIRY_SWEEP_INTERVAL_MS ?? 10 * 60_000;
+  startSubscriptionExpiryScheduler({
+    dataLayer,
+    vpnService,
+    notifier: subscriptionTelegramNotifier,
+    intervalMs: expirySweepEveryMs,
     log: app.log
   });
 

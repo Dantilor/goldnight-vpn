@@ -134,7 +134,11 @@ export type SupportRecord = {
   createdAt: Date;
 };
 
-export type SubscriptionNotificationTypeName = 'payment_success' | 'expires_in_5_days' | 'expires_in_1_day';
+export type SubscriptionNotificationTypeName =
+  | 'payment_success'
+  | 'expires_in_5_days'
+  | 'expires_in_1_day'
+  | 'subscription_expired_vpn_stopped';
 
 export type ActiveSubscriptionReminderRow = {
   subscriptionId: string;
@@ -204,6 +208,9 @@ export interface DataLayer {
     type: SubscriptionNotificationTypeName
   ): Promise<void>;
   checkReadiness(): Promise<{ ok: boolean; detail: string }>;
+  /** Mark active subscriptions past ends_at as expired; returns rows transitioned this call (idempotent). */
+  expireOverdueActiveSubscriptions(): Promise<Array<{ subscriptionId: string; userId: string }>>;
+  listDistinctUserIdsWithActiveVpnForProvider(provider: string): Promise<string[]>;
 }
 
 class PrismaDataLayer implements DataLayer {
@@ -282,7 +289,7 @@ class PrismaDataLayer implements DataLayer {
 
   async getActiveSubscriptionByUserId(userId: string): Promise<SubscriptionRecord | null> {
     const row = await this.db.subscription.findFirst({
-      where: { userId, status: 'active' },
+      where: { userId, status: 'active', endsAt: { gt: new Date() } },
       include: { plan: true },
       orderBy: { endsAt: 'desc' }
     });
@@ -699,6 +706,30 @@ class PrismaDataLayer implements DataLayer {
     await this.db.$queryRaw`SELECT 1`;
     return { ok: true, detail: 'prisma:ok' };
   }
+
+  async expireOverdueActiveSubscriptions(): Promise<Array<{ subscriptionId: string; userId: string }>> {
+    const now = new Date();
+    const overdue = await this.db.subscription.findMany({
+      where: { status: 'active', endsAt: { lte: now } },
+      select: { id: true, userId: true }
+    });
+    if (overdue.length === 0) {
+      return [];
+    }
+    await this.db.subscription.updateMany({
+      where: { id: { in: overdue.map((r) => r.id) } },
+      data: { status: 'expired' }
+    });
+    return overdue.map((r) => ({ subscriptionId: r.id, userId: r.userId }));
+  }
+
+  async listDistinctUserIdsWithActiveVpnForProvider(provider: string): Promise<string[]> {
+    const rows = await this.db.vpnAccess.findMany({
+      where: { provider, status: 'active' },
+      select: { userId: true }
+    });
+    return [...new Set(rows.map((r) => r.userId))];
+  }
 }
 
 class SupabaseDataLayer implements DataLayer {
@@ -800,6 +831,7 @@ class SupabaseDataLayer implements DataLayer {
       )
       .eq('user_id', userId)
       .eq('status', 'active')
+      .gt('ends_at', new Date().toISOString())
       .order('ends_at', { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -816,7 +848,7 @@ class SupabaseDataLayer implements DataLayer {
         id: plan.id,
         name: plan.name,
         durationDays: plan.duration_days,
-        deviceLimit: typeof plan.device_limit === 'number' ? plan.device_limit : 0
+        deviceLimit: typeof plan.device_limit === 'number' ? plan.device_limit : 1
       }
     };
   }
@@ -838,7 +870,7 @@ class SupabaseDataLayer implements DataLayer {
       name: row.name,
       priceUsd: Number(row.price_usd),
       priceRub: Number(row.price_rub ?? 0),
-      deviceLimit: typeof row.device_limit === 'number' ? row.device_limit : 0,
+      deviceLimit: typeof row.device_limit === 'number' ? row.device_limit : 1,
       subtitle: row.subtitle ?? null,
       durationDays: row.duration_days,
       active: row.is_active,
@@ -860,7 +892,7 @@ class SupabaseDataLayer implements DataLayer {
       name: data.name,
       priceUsd: Number(data.price_usd),
       priceRub: Number(data.price_rub ?? 0),
-      deviceLimit: typeof data.device_limit === 'number' ? data.device_limit : 0,
+      deviceLimit: typeof data.device_limit === 'number' ? data.device_limit : 1,
       subtitle: data.subtitle ?? null,
       durationDays: data.duration_days,
       active: data.is_active,
@@ -1288,6 +1320,31 @@ class SupabaseDataLayer implements DataLayer {
     const { error } = await this.client.from('app_users').select('id', { head: true, count: 'exact' }).limit(1);
     if (error) throw error;
     return { ok: true, detail: 'supabase:ok' };
+  }
+
+  async expireOverdueActiveSubscriptions(): Promise<Array<{ subscriptionId: string; userId: string }>> {
+    const nowIso = new Date().toISOString();
+    const { data, error } = await this.client
+      .from('app_subscriptions')
+      .update({ status: 'expired', updated_at: nowIso })
+      .eq('status', 'active')
+      .lte('ends_at', nowIso)
+      .select('id, user_id');
+    if (error) throw error;
+    return (data ?? []).map((row: { id: string; user_id: string }) => ({
+      subscriptionId: row.id,
+      userId: row.user_id
+    }));
+  }
+
+  async listDistinctUserIdsWithActiveVpnForProvider(provider: string): Promise<string[]> {
+    const { data, error } = await this.client
+      .from('app_vpn_access_records')
+      .select('user_id')
+      .eq('provider', provider)
+      .eq('status', 'active');
+    if (error) throw error;
+    return [...new Set((data ?? []).map((r: { user_id: string }) => r.user_id))];
   }
 }
 

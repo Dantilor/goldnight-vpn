@@ -52,13 +52,20 @@ export async function registerVpnRoutes(app: FastifyInstance, ctx: AppContext) {
     return reply.code(204).send();
   });
 
-  app.post('/me/vpn/connect-payload', { preHandler: [ctx.requireAuth] }, async (request) => {
+  app.post('/me/vpn/connect-payload', { preHandler: [ctx.requireAuth] }, async (request, reply) => {
     const body = connectPayloadBodySchema.parse(request.body ?? {});
-    return ctx.vpnService.getConnectPayload({
-      userId: request.authUser!.id,
-      platform: body.platform,
-      client: body.client,
-      deviceFingerprint: body.deviceFingerprint
-    });
+    try {
+      return await ctx.vpnService.getConnectPayload({
+        userId: request.authUser!.id,
+        platform: body.platform,
+        client: body.client,
+        deviceFingerprint: body.deviceFingerprint
+      });
+    } catch (err) {
+      if (err instanceof SubscriptionRequiredError) {
+        return reply.code(403).send({ message: 'Active subscription required for VPN connect payload.' });
+      }
+      throw err;
+    }
   });
 }

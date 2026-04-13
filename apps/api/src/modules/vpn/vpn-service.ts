@@ -95,12 +95,19 @@ export class VpnService {
 
   async revokeAccess(userId: string, target?: { deviceFingerprint?: string }) {
     const pid = this.providerId();
+    try {
+      if (target?.deviceFingerprint) {
+        await this.provider.revokeAccess(userId, { deviceFingerprint: target.deviceFingerprint });
+      } else {
+        await this.provider.revokeAccess(userId);
+      }
+    } catch {
+      /* manual/real provider may throw; x-ui delete may fail — still mark DB revoked */
+    }
     if (target?.deviceFingerprint) {
-      await this.provider.revokeAccess(userId, { deviceFingerprint: target.deviceFingerprint });
       await this.dataLayer.revokeVpnAccessByUserProviderDevice(userId, pid, target.deviceFingerprint);
       return;
     }
-    await this.provider.revokeAccess(userId);
     await this.dataLayer.revokeAllVpnAccessForUser(userId);
   }
 
@@ -110,6 +117,10 @@ export class VpnService {
     client: VpnClient;
     deviceFingerprint: string;
   }): Promise<ConnectPayload> {
+    const subOk = await this.dataLayer.getActiveSubscriptionByUserId(input.userId);
+    if (!subOk) {
+      throw new SubscriptionRequiredError();
+    }
     if (this.env.DATA_LAYER === 'supabase') {
       const pid = this.providerId();
       const access = await this.dataLayer.getVpnAccessByUserProviderDevice(
@@ -139,6 +150,10 @@ export class VpnService {
   }
 
   async getUserAccess(userId: string, deviceFingerprint: string): Promise<UserVpnAccess | null> {
+    const subOk = await this.dataLayer.getActiveSubscriptionByUserId(userId);
+    if (!subOk) {
+      return null;
+    }
     if (this.env.DATA_LAYER === 'supabase') {
       const pid = this.providerId();
       const access = await this.dataLayer.getVpnAccessByUserProviderDevice(userId, pid, deviceFingerprint);
@@ -183,8 +198,7 @@ export class VpnService {
    * Requires an active subscription and a free slot unless this device already has active access.
    *
    * Slot counting uses one active DB row per `(user, provider, deviceFingerprint)` — each provision
-   * for xui gets a unique VLESS UUID. Panel `limitIp` is set from `XUI_CLIENT_LIMIT_IP` (default 0 =
-   * unlimited distinct IPs per UUID); see API README.
+   * for xui gets a unique VLESS UUID. Panel `limitIp` comes from `XUI_CLIENT_LIMIT_IP` (default 1); see API README.
    */
   async provisionMyVpn(
     userId: string,
@@ -208,12 +222,9 @@ export class VpnService {
       return this.renewAccess(userId, sub.plan.id, ctx);
     }
 
-    const slotLimit = sub.plan.deviceLimit;
-    if (slotLimit > 0) {
-      const activeCount = await this.dataLayer.countActiveVpnAccessByUserAndProvider(userId, pid);
-      if (activeCount >= slotLimit) {
-        throw new DeviceLimitReachedError();
-      }
+    const activeCount = await this.dataLayer.countActiveVpnAccessByUserAndProvider(userId, pid);
+    if (activeCount >= sub.plan.deviceLimit) {
+      throw new DeviceLimitReachedError();
     }
 
     return this.issueAccess(userId, sub.plan.id, ctx);
@@ -221,5 +232,20 @@ export class VpnService {
 
   async revokeMyVpn(userId: string, target?: { deviceFingerprint?: string }): Promise<void> {
     await this.revokeAccess(userId, target);
+  }
+
+  /**
+   * Revokes panel + DB VPN for every user who still has active access rows but no valid (non-expired) subscription.
+   * Idempotent; safe to run on a schedule after subscription expiry sweep.
+   */
+  async revokeActiveVpnForUsersWithoutValidSubscription(): Promise<void> {
+    const pid = this.providerId();
+    const userIds = await this.dataLayer.listDistinctUserIdsWithActiveVpnForProvider(pid);
+    for (const userId of userIds) {
+      const sub = await this.dataLayer.getActiveSubscriptionByUserId(userId);
+      if (!sub) {
+        await this.revokeMyVpn(userId);
+      }
+    }
   }
 }

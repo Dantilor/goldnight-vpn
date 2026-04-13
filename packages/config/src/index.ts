@@ -22,15 +22,16 @@ const apiEnvSchema = baseEnvSchema.extend({
   XUI_DOMAIN: z.string().min(1).optional(),
   /** Public port in vless:// (often 443) */
   XUI_PORT: z.coerce.number().int().positive().optional(),
-  /** Optional VLESS flow, e.g. xtls-rprx-vision for REALITY */
+  /** Optional VLESS flow (e.g. xtls-rprx-vision for TCP+XTLS). Omit when using XHTTP (`type=xhttp` in EXTRA_QUERY). */
   XUI_VLESS_FLOW: z.string().optional(),
   /**
-   * Extra URI query for vless:// (without leading ?), e.g. type=tcp&security=reality&sni=...&pbk=...&fp=chrome&sid=...
+   * Extra URI query for vless:// (without leading ?). Must match 3x-ui share link for this inbound
+   * (e.g. type=xhttp&mode=packet-up&security=tls&path=... or type=tcp&security=reality&...).
    */
   XUI_VLESS_EXTRA_QUERY: z.string().optional(),
   /**
    * 3x-ui / Xray client `limitIp`: max distinct source IPs allowed per VLESS client UUID.
-   * Code defaults to 0 (unlimited). Set 1+ to cap concurrent source IPs per link.
+   * Code defaults to 1. Set 0 to disable the per-link IP cap.
    */
   XUI_CLIENT_LIMIT_IP: z.coerce.number().int().min(0).max(64).optional(),
   TELEGRAM_BOT_TOKEN: z.string().min(1).optional(),
@@ -50,7 +51,9 @@ const apiEnvSchema = baseEnvSchema.extend({
   /** Код НДС для позиций чека YooKassa (1–6). Если не задан — используется значение по умолчанию в API. */
   YOOKASSA_RECEIPT_VAT_CODE: z.coerce.number().int().min(1).max(6).optional(),
   /** How often the API runs subscription expiry reminder scan (ms). Default 6 hours. */
-  SUBSCRIPTION_REMINDER_INTERVAL_MS: z.coerce.number().int().positive().optional()
+  SUBSCRIPTION_REMINDER_INTERVAL_MS: z.coerce.number().int().positive().optional(),
+  /** How often the API expires overdue subscriptions and revokes VPN (ms). Default 10 minutes. */
+  SUBSCRIPTION_EXPIRY_SWEEP_INTERVAL_MS: z.coerce.number().int().positive().optional()
 });
 
 const botEnvSchema = baseEnvSchema.extend({

@@ -12,7 +12,12 @@ type YooNotificationBody = {
 };
 
 export async function registerPaymentRoutes(app: FastifyInstance, ctx: AppContext) {
-  const service = new YooKassaPaymentService(ctx.env, ctx.dataLayer, ctx.subscriptionTelegramNotifier);
+  const service = new YooKassaPaymentService(
+    ctx.env,
+    ctx.dataLayer,
+    ctx.subscriptionTelegramNotifier,
+    (userId) => ctx.vpnService.revokeMyVpn(userId)
+  );
 
   app.get('/payments/status', async () => ({
     yookassaConfigured: service.isConfigured()
@@ -93,7 +98,8 @@ export async function registerPaymentRoutes(app: FastifyInstance, ctx: AppContex
     }
     try {
       const result = await service.handlePaymentSucceededNotification(ykId, {
-        onTelegramNotifyError: (err) => request.log.error({ err, ykId }, 'Telegram notify after payment failed')
+        onTelegramNotifyError: (err) => request.log.error({ err, ykId }, 'Telegram notify after payment failed'),
+        onVpnRevokeError: (err) => request.log.error({ err, ykId }, 'VPN revoke before subscription renewal failed')
       });
       return { ok: true, result };
     } catch (err) {

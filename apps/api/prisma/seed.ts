@@ -10,8 +10,8 @@ const plans = [
     name: 'Базовый 30 дней',
     durationDays: 30,
     priceRub: 149,
-    deviceLimit: 0,
-    subtitle: 'Без лимита устройств',
+    deviceLimit: 1,
+    subtitle: 'Для одного устройства',
     sortOrder: 1
   },
   {
@@ -19,8 +19,8 @@ const plans = [
     name: 'Базовый 90 дней',
     durationDays: 90,
     priceRub: 399,
-    deviceLimit: 0,
-    subtitle: 'Без лимита устройств',
+    deviceLimit: 1,
+    subtitle: 'Для одного устройства',
     sortOrder: 2
   },
   {
@@ -28,8 +28,8 @@ const plans = [
     name: 'Базовый 180 дней',
     durationDays: 180,
     priceRub: 699,
-    deviceLimit: 0,
-    subtitle: 'Без лимита устройств',
+    deviceLimit: 1,
+    subtitle: 'Для одного устройства',
     sortOrder: 3
   },
   {
@@ -37,8 +37,8 @@ const plans = [
     name: 'Базовый 365 дней',
     durationDays: 365,
     priceRub: 1490,
-    deviceLimit: 0,
-    subtitle: 'Без лимита устройств',
+    deviceLimit: 1,
+    subtitle: 'Для одного устройства',
     sortOrder: 4
   },
   {
@@ -46,8 +46,8 @@ const plans = [
     name: 'Стандарт 30 дней',
     durationDays: 30,
     priceRub: 249,
-    deviceLimit: 0,
-    subtitle: 'Без лимита устройств',
+    deviceLimit: 3,
+    subtitle: 'Телефон, ПК и ещё одно устройство',
     sortOrder: 5
   },
   {
@@ -55,8 +55,8 @@ const plans = [
     name: 'Стандарт 90 дней',
     durationDays: 90,
     priceRub: 649,
-    deviceLimit: 0,
-    subtitle: 'Без лимита устройств',
+    deviceLimit: 3,
+    subtitle: 'Телефон, ПК и ещё одно устройство',
     sortOrder: 6
   },
   {
@@ -64,8 +64,8 @@ const plans = [
     name: 'Стандарт 180 дней',
     durationDays: 180,
     priceRub: 1190,
-    deviceLimit: 0,
-    subtitle: 'Без лимита устройств',
+    deviceLimit: 3,
+    subtitle: 'Телефон, ПК и ещё одно устройство',
     sortOrder: 7
   },
   {
@@ -73,8 +73,8 @@ const plans = [
     name: 'Стандарт 365 дней',
     durationDays: 365,
     priceRub: 2290,
-    deviceLimit: 0,
-    subtitle: 'Без лимита устройств',
+    deviceLimit: 3,
+    subtitle: 'Телефон, ПК и ещё одно устройство',
     sortOrder: 8
   },
   {
@@ -82,8 +82,8 @@ const plans = [
     name: 'Премиум 30 дней',
     durationDays: 30,
     priceRub: 349,
-    deviceLimit: 0,
-    subtitle: 'Без лимита устройств',
+    deviceLimit: 5,
+    subtitle: 'Для нескольких устройств',
     sortOrder: 9
   },
   {
@@ -91,8 +91,8 @@ const plans = [
     name: 'Премиум 90 дней',
     durationDays: 90,
     priceRub: 899,
-    deviceLimit: 0,
-    subtitle: 'Без лимита устройств',
+    deviceLimit: 5,
+    subtitle: 'Для нескольких устройств',
     sortOrder: 10
   },
   {
@@ -100,8 +100,8 @@ const plans = [
     name: 'Премиум 180 дней',
     durationDays: 180,
     priceRub: 1590,
-    deviceLimit: 0,
-    subtitle: 'Без лимита устройств',
+    deviceLimit: 5,
+    subtitle: 'Для нескольких устройств',
     sortOrder: 11
   },
   {
@@ -109,8 +109,8 @@ const plans = [
     name: 'Премиум 365 дней',
     durationDays: 365,
     priceRub: 2990,
-    deviceLimit: 0,
-    subtitle: 'Без лимита устройств',
+    deviceLimit: 5,
+    subtitle: 'Для нескольких устройств',
     sortOrder: 12
   }
 ] as const;

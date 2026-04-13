@@ -4,7 +4,24 @@
  *
  * Always sets `encryption=none` and optional `flow` here so they are not duplicated
  * or contradicted by `XUI_VLESS_EXTRA_QUERY` (duplicate keys break some clients).
+ *
+ * XHTTP (and similar) share links must not include `flow=xtls-rprx-vision` — that is for TCP+XTLS.
+ * If `extraQuery` contains `type=xhttp`, `flow` from env is ignored.
  */
+export function vlessShareLinkUsesXhttpTransport(extraQuery: string | undefined): boolean {
+  const raw = extraQuery?.trim().replace(/^\?/, '') ?? '';
+  if (!raw) {
+    return false;
+  }
+  const parsed = new URLSearchParams(raw);
+  for (const [key, value] of parsed.entries()) {
+    if (key.toLowerCase() === 'type' && value.toLowerCase() === 'xhttp') {
+      return true;
+    }
+  }
+  return false;
+}
+
 export function buildVlessUri(input: {
   uuid: string;
   host: string;
@@ -24,8 +41,10 @@ export function buildVlessUri(input: {
     });
   }
 
+  const isXhttp = vlessShareLinkUsesXhttpTransport(input.extraQuery);
+
   const head: string[] = ['encryption=none'];
-  if (input.flow?.trim()) {
+  if (!isXhttp && input.flow?.trim()) {
     head.push(`flow=${encodeURIComponent(input.flow.trim())}`);
   }
   const tailStr = tail.toString();

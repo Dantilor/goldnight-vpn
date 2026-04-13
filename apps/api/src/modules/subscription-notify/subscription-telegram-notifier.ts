@@ -59,6 +59,31 @@ export class SubscriptionTelegramNotifier {
   /**
    * After YooKassa webhook activated subscription (DB row exists). Idempotent via notification row.
    */
+  /** After subscription ended and VPN was revoked (scheduler). Idempotent per subscription. */
+  async notifySubscriptionExpiredVpnStopped(userId: string, subscriptionId: string): Promise<void> {
+    if (!this.botConfigured()) return;
+    const reserved = await this.dataLayer.tryCreateSubscriptionNotificationRecord({
+      userId,
+      subscriptionId,
+      type: 'subscription_expired_vpn_stopped'
+    });
+    if (!reserved) return;
+    const user = await this.dataLayer.getUserById(userId);
+    if (!user) return;
+    const text =
+      '<b>Подписка закончилась</b>\n\nДоступ к VPN остановлен. Продлите подписку в приложении и заново выдайте ключ (раздел «Подключение»).';
+    const markup = {
+      inline_keyboard: [[{ text: 'Продлить подписку', web_app: { url: miniAppWebUrl(this.env, 'plans') } }]]
+    };
+    try {
+      await this.tgSend(user.telegramUserId, text, markup);
+    } catch {
+      await this.dataLayer
+        .deleteSubscriptionNotificationRecord(subscriptionId, 'subscription_expired_vpn_stopped')
+        .catch(() => undefined);
+    }
+  }
+
   async notifyPaymentSuccess(userId: string): Promise<void> {
     if (!this.botConfigured()) return;
     const sub = await this.dataLayer.getActiveSubscriptionByUserId(userId);
