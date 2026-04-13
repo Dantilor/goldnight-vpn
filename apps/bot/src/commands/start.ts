@@ -57,7 +57,7 @@ export async function handleStart(input: {
   let sentMessageId: number | undefined;
 
   if (alreadyWelcomed) {
-    const m = await input.ctx.reply(MESSAGES.welcomeShort, accessKeyboard);
+    const m = await input.ctx.reply(MESSAGES.welcomeFullCaption, accessKeyboard);
     sentMessageId = m.message_id;
   } else {
     const imagePath = resolveWelcomeImagePath();
