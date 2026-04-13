@@ -10,6 +10,7 @@ import { runTelegramMiniAppStartup } from './lib/mini-app-startup';
 import { Card } from './components/ui/card';
 import { ErrorBlock, LoadingBlock } from './components/ui/feedback';
 import { TelegramOnlyRoute } from './components/layout/telegram-only-route';
+import { usePostCheckoutQueryRefresh } from './lib/post-checkout-refresh';
 import { setupTelegramStartupUi } from './lib/telegram';
 
 const SubscriptionScreen = lazy(() =>
@@ -45,6 +46,10 @@ function AppRoutes() {
     isTelegramMiniApp ? 'loading' : 'ready'
   );
   const [tgBootstrapError, setTgBootstrapError] = useState<Error | null>(null);
+
+  const postCheckoutRefreshEnabled =
+    !isTelegramMiniApp || tgBootstrapPhase === 'ready';
+  usePostCheckoutQueryRefresh(postCheckoutRefreshEnabled, queryClient);
 
   useEffect(() => {
     if (!isTelegramMiniApp) return;

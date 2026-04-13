@@ -105,11 +105,24 @@ export function ConnectScreen() {
 
   const hasActiveSubscription = subscription.data?.status === 'active';
   const hasActiveVpnAccess = access.data?.status === 'active';
+
+  const subscriptionDeviceLimit =
+    subscription.data?.status === 'active' ? subscription.data.plan.deviceLimit : undefined;
+
+  const effectiveDeviceLimit = useMemo(() => {
+    if (subscription.data?.status === 'active') {
+      return subscription.data.plan.deviceLimit;
+    }
+    return vpnDevices.data?.deviceLimit ?? 0;
+  }, [subscription.data, vpnDevices.data?.deviceLimit]);
+
+  const activeDevicesCount = vpnDevices.data?.activeCount ?? 0;
+
   const atLimitNoAccess =
     hasActiveSubscription &&
     Boolean(vpnDevices.data) &&
-    vpnDevices.data!.deviceLimit > 0 &&
-    vpnDevices.data!.activeCount >= vpnDevices.data!.deviceLimit &&
+    effectiveDeviceLimit > 0 &&
+    activeDevicesCount >= effectiveDeviceLimit &&
     access.data?.status !== 'active';
 
   const handlePlatformChange = (p: DevicePlatform) => {
@@ -201,8 +214,8 @@ export function ConnectScreen() {
                 <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-error/90">Лимит устройств</p>
                 <h2 className="mt-1 font-headline text-xl font-bold tracking-tight text-white">Слоты заняты</h2>
                 <p className="mt-2 text-sm leading-snug text-on-surface-variant">
-                  Подключено {vpnDevices.data?.activeCount ?? 0} из {vpnDevices.data?.deviceLimit ?? 0}. Отключите другое
-                  устройство, чтобы выдать доступ на этом.
+                  Подключено {activeDevicesCount} из {effectiveDeviceLimit}. Отключите другое устройство, чтобы выдать
+                  доступ на этом.
                 </p>
                 <div className="mt-4 max-h-48 space-y-2 overflow-y-auto">
                   {(vpnDevices.data?.devices ?? [])
@@ -310,6 +323,9 @@ export function ConnectScreen() {
           access={access.data ?? null}
           deviceFingerprint={deviceFingerprint}
           vpnDevices={vpnDevices}
+          {...(subscriptionDeviceLimit !== undefined
+            ? { deviceLimitFromSubscription: subscriptionDeviceLimit }
+            : {})}
           platform={platform}
           onPlatformChange={handlePlatformChange}
           appClient={appClient}

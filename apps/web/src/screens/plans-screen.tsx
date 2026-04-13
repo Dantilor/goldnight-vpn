@@ -8,6 +8,7 @@ import {
   useYookassaCheckoutMutation
 } from '../lib/query-hooks';
 import { EmptyBlock, ErrorBlock, LoadingBlock } from '../components/ui/feedback';
+import { markPendingCheckoutRefresh } from '../lib/post-checkout-refresh';
 import { openCheckoutUrl } from '../lib/telegram';
 import type { Plan } from '../types/api';
 
@@ -78,6 +79,7 @@ export function PlansScreen() {
       const { confirmationUrl } = await checkout.mutateAsync(
         receiptEmail !== undefined ? { planId, receiptEmail } : { planId }
       );
+      markPendingCheckoutRefresh(planId);
       openCheckoutUrl(confirmationUrl);
       closeEmailGate();
     } catch (e) {

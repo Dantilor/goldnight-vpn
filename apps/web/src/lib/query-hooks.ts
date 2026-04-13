@@ -19,6 +19,8 @@ export function useYookassaCheckoutMutation() {
       apiClient.createYookassaCheckout(input.planId, input.receiptEmail),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['me'] });
+      await queryClient.invalidateQueries({ queryKey: ['subscription', 'current'] });
+      await queryClient.invalidateQueries({ queryKey: ['plans'] });
     }
   });
 }
@@ -29,7 +31,8 @@ export function useCurrentSubscriptionQuery() {
     queryFn: () => apiClient.getCurrentSubscription(),
     enabled: Boolean(authStore.getToken()),
     staleTime: 60_000,
-    placeholderData: keepPreviousData
+    placeholderData: keepPreviousData,
+    refetchOnWindowFocus: true
   });
 }
 
@@ -39,7 +42,8 @@ export function useVpnAccessQuery(deviceFingerprint: string) {
     queryFn: () => apiClient.getVpnAccess(deviceFingerprint),
     enabled: Boolean(authStore.getToken()) && Boolean(deviceFingerprint),
     staleTime: 60_000,
-    placeholderData: keepPreviousData
+    placeholderData: keepPreviousData,
+    refetchOnWindowFocus: true
   });
 }
 
@@ -49,7 +53,8 @@ export function useVpnDevicesQuery() {
     queryFn: () => apiClient.getVpnDevices(),
     enabled: Boolean(authStore.getToken()),
     staleTime: 30_000,
-    placeholderData: keepPreviousData
+    placeholderData: keepPreviousData,
+    refetchOnWindowFocus: true
   });
 }
 

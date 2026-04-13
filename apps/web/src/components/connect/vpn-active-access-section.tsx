@@ -24,6 +24,8 @@ export type VpnActiveAccessSectionProps = {
   access: VpnAccess | null;
   deviceFingerprint: string;
   vpnDevices: UseQueryResult<VpnDevicesSummary, Error>;
+  /** Лимит из активной подписки (приоритет над снимком /me/vpn/devices при рассинхроне после оплаты). */
+  deviceLimitFromSubscription?: number;
   platform: DevicePlatform;
   onPlatformChange: (p: DevicePlatform) => void;
   appClient: VpnAppClientId;
@@ -39,6 +41,7 @@ export function VpnActiveAccessSection({
   access,
   deviceFingerprint,
   vpnDevices,
+  deviceLimitFromSubscription,
   platform,
   onPlatformChange,
   appClient,
@@ -74,6 +77,11 @@ export function VpnActiveAccessSection({
     () => platformConfig.clients.filter((g) => clientGuideMatchesApp(g, appClient)),
     [platformConfig.clients, appClient]
   );
+
+  const displayDeviceLimit =
+    deviceLimitFromSubscription !== undefined
+      ? deviceLimitFromSubscription
+      : (vpnDevices.data?.deviceLimit ?? 0);
 
   const showToast = (message: string, variant: 'success' | 'error' = 'success') => {
     setToast({ message, variant });
@@ -147,16 +155,16 @@ export function VpnActiveAccessSection({
           </h2>
         </div>
 
-        {vpnDevices.data && vpnDevices.data.deviceLimit > 0 ? (
+        {vpnDevices.data && displayDeviceLimit > 0 ? (
           <div className="mb-4 rounded-2xl border border-outline-variant/15 bg-surface-container-low/80 p-4 text-sm text-on-surface-variant">
             <p>
-              <span className="font-semibold text-white">Лимит устройств:</span> {vpnDevices.data.deviceLimit}
+              <span className="font-semibold text-white">Лимит устройств:</span> {displayDeviceLimit}
             </p>
             <p className="mt-1">
               <span className="font-semibold text-white">Подключено:</span> {vpnDevices.data.activeCount} из{' '}
-              {vpnDevices.data.deviceLimit}
+              {displayDeviceLimit}
             </p>
-            {vpnDevices.data.activeCount >= vpnDevices.data.deviceLimit && access?.status !== 'active' ? (
+            {vpnDevices.data.activeCount >= displayDeviceLimit && access?.status !== 'active' ? (
               <p className="mt-2 text-xs text-error">Лимит устройств достигнут. Освободите слот на другом устройстве.</p>
             ) : null}
             {vpnDevices.data.devices.filter((d) => d.accessStatus === 'active' && d.deviceFingerprint !== deviceFingerprint)
