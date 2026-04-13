@@ -30,7 +30,7 @@ const apiEnvSchema = baseEnvSchema.extend({
   XUI_VLESS_EXTRA_QUERY: z.string().optional(),
   /**
    * 3x-ui / Xray client `limitIp`: max distinct source IPs allowed per VLESS client UUID.
-   * Default 1 approximates "one device per link" (see API README). Set 0 to disable (not recommended).
+   * Code defaults to 0 (unlimited). Set 1+ to cap concurrent source IPs per link.
    */
   XUI_CLIENT_LIMIT_IP: z.coerce.number().int().min(0).max(64).optional(),
   TELEGRAM_BOT_TOKEN: z.string().min(1).optional(),

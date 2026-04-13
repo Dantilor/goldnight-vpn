@@ -78,7 +78,7 @@ model Plan {
   // Legacy column; new catalog uses priceRub
   priceUsd      Decimal        @db.Decimal(10, 2) @default(0)
   priceRub      Decimal        @db.Decimal(12, 2)
-  deviceLimit   Int            @default(1)
+  deviceLimit   Int            @default(0)
   subtitle      String?
   sortOrder     Int            @default(0)
   durationDays  Int

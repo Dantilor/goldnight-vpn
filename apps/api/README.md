@@ -70,7 +70,9 @@ Env is validated in `@goldnight/config`. When `VPN_PROVIDER=xui`, these are requ
 
 **Routing / DNS / firewall** (Xray `outbounds`, server NAT, `iptables`, provider blocking 443) are **only on the VPS**; this repo does not deploy or validate them.
 
-**One link ≈ one device (3x-ui `limitIp`)** — New VLESS clients are created with `limitIp` from `XUI_CLIENT_LIMIT_IP` (default **1**): the panel limits how many distinct source IPs may use that client UUID at once, which blocks casually pasting the same `vless://` onto a second phone on a different IP. Set `XUI_CLIENT_LIMIT_IP=0` only if you need legacy unlimited behaviour. This is not a cryptographic device binding: CGNAT (many users behind one IP), mobile IP churn, or Xray/panel quirks can still differ from “exactly one handset”. Renew on the same device still updates expiry in DB without consuming an extra slot; clients created before this change keep their panel `limitIp` until re-issued (delete + provision) or edited in the panel.
+**3x-ui `limitIp` (IPs per VLESS UUID)** — New clients use `limitIp` from `XUI_CLIENT_LIMIT_IP` (default **0** = unlimited distinct source IPs per link). Set `XUI_CLIENT_LIMIT_IP=1` (or higher) to restrict sharing one `vless://` across many devices. Existing panel clients keep their old `limitIp` until re-issued or edited in the panel.
+
+**Plan device slots** — `app_plans.device_limit`: **0** means no API-side slot cap (unlimited provision rows per user). Run `supabase/sql/009_plans_unlimited_devices.sql` or re-run `005_seed_plans_rub_v2.sql` on Supabase to align existing rows.
 
 ## Not Implemented Yet
 

@@ -816,7 +816,7 @@ class SupabaseDataLayer implements DataLayer {
         id: plan.id,
         name: plan.name,
         durationDays: plan.duration_days,
-        deviceLimit: typeof plan.device_limit === 'number' ? plan.device_limit : 1
+        deviceLimit: typeof plan.device_limit === 'number' ? plan.device_limit : 0
       }
     };
   }
@@ -838,7 +838,7 @@ class SupabaseDataLayer implements DataLayer {
       name: row.name,
       priceUsd: Number(row.price_usd),
       priceRub: Number(row.price_rub ?? 0),
-      deviceLimit: typeof row.device_limit === 'number' ? row.device_limit : 1,
+      deviceLimit: typeof row.device_limit === 'number' ? row.device_limit : 0,
       subtitle: row.subtitle ?? null,
       durationDays: row.duration_days,
       active: row.is_active,
@@ -860,7 +860,7 @@ class SupabaseDataLayer implements DataLayer {
       name: data.name,
       priceUsd: Number(data.price_usd),
       priceRub: Number(data.price_rub ?? 0),
-      deviceLimit: typeof data.device_limit === 'number' ? data.device_limit : 1,
+      deviceLimit: typeof data.device_limit === 'number' ? data.device_limit : 0,
       subtitle: data.subtitle ?? null,
       durationDays: data.duration_days,
       active: data.is_active,

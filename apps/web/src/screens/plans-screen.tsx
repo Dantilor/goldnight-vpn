@@ -268,7 +268,10 @@ export function PlansScreen() {
                       </h2>
                       <p className="text-sm text-on-surface-variant">{subtitle}</p>
                       <p className="text-xs text-on-surface-variant">
-                        Устройств: <span className="font-semibold text-white">{plan.deviceLimit}</span>
+                        Устройств:{' '}
+                        <span className="font-semibold text-white">
+                          {plan.deviceLimit <= 0 ? 'без ограничений' : plan.deviceLimit}
+                        </span>
                       </p>
                       {isCurrent && endsLabel ? (
                         <p className="text-xs font-medium text-primary/95">Активен до {endsLabel}</p>

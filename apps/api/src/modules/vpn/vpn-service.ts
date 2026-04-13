@@ -183,8 +183,8 @@ export class VpnService {
    * Requires an active subscription and a free slot unless this device already has active access.
    *
    * Slot counting uses one active DB row per `(user, provider, deviceFingerprint)` — each provision
-   * for xui gets a unique VLESS UUID. Manual reuse of one link on multiple devices is constrained
-   * at the panel via `limitIp` on new clients (`XUI_CLIENT_LIMIT_IP`, default 1); see API README.
+   * for xui gets a unique VLESS UUID. Panel `limitIp` is set from `XUI_CLIENT_LIMIT_IP` (default 0 =
+   * unlimited distinct IPs per UUID); see API README.
    */
   async provisionMyVpn(
     userId: string,
@@ -208,9 +208,12 @@ export class VpnService {
       return this.renewAccess(userId, sub.plan.id, ctx);
     }
 
-    const activeCount = await this.dataLayer.countActiveVpnAccessByUserAndProvider(userId, pid);
-    if (activeCount >= sub.plan.deviceLimit) {
-      throw new DeviceLimitReachedError();
+    const slotLimit = sub.plan.deviceLimit;
+    if (slotLimit > 0) {
+      const activeCount = await this.dataLayer.countActiveVpnAccessByUserAndProvider(userId, pid);
+      if (activeCount >= slotLimit) {
+        throw new DeviceLimitReachedError();
+      }
     }
 
     return this.issueAccess(userId, sub.plan.id, ctx);

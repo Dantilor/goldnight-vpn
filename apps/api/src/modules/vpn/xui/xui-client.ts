@@ -10,7 +10,7 @@ export type XuiClientConfig = {
   publicPort: number;
   vlessFlow?: string;
   vlessExtraQuery?: string;
-  /** 3x-ui client limitIp (0 = unlimited). Default applied in factory is 1. */
+  /** 3x-ui client limitIp (0 = unlimited). Default applied in factory is 0. */
   clientLimitIp: number;
 };
 
@@ -265,7 +265,7 @@ export function createXuiClientFromEnv(
     XUI_PORT: number;
   } & Partial<{ XUI_VLESS_FLOW: string; XUI_VLESS_EXTRA_QUERY: string; XUI_CLIENT_LIMIT_IP: number }>
 ): ThreeXUiClient {
-  const clientLimitIp = env.XUI_CLIENT_LIMIT_IP ?? 1;
+  const clientLimitIp = env.XUI_CLIENT_LIMIT_IP ?? 0;
   return new ThreeXUiClient({
     host: env.XUI_HOST,
     basePath: env.XUI_BASE_PATH,
