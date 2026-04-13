@@ -59,14 +59,22 @@ export class XuiVpnProvider implements VpnProvider {
   async issueAccess(userId: string, planId: string, ctx: VpnDeviceContext): Promise<UserVpnAccess> {
     const existing = await this.dataLayer.getVpnAccessByUserProviderDevice(userId, 'xui', ctx.deviceFingerprint);
     if (existing?.status === 'active' && existing.externalAccessId && existing.value) {
-      return mapRow(existing);
+      const inPanel = await this.xui.clientExistsInInbound(existing.externalAccessId);
+      if (inPanel) {
+        return mapRow(existing);
+      }
+      // DB says active but panel has no such client — re-provision so external_access_id matches panel.
     }
 
     if (existing?.externalAccessId) {
       try {
         await this.xui.deleteClient(existing.externalAccessId);
-      } catch {
-        // client may already be removed in panel
+      } catch (err) {
+        const stillThere = await this.xui.clientExistsInInbound(existing.externalAccessId);
+        if (stillThere) {
+          throw err;
+        }
+        // Already removed in panel; safe to add a new client without duplicating UUIDs.
       }
     }
 
@@ -106,6 +114,12 @@ export class XuiVpnProvider implements VpnProvider {
     const endsAtIso = sub?.endsAt.toISOString() ?? existing?.expiresAt ?? new Date().toISOString();
     if (!existing) {
       return this.issueAccess(userId, planId, ctx);
+    }
+    if (existing.externalAccessId) {
+      const inPanel = await this.xui.clientExistsInInbound(existing.externalAccessId);
+      if (!inPanel) {
+        return this.issueAccess(userId, planId, ctx);
+      }
     }
     return {
       ...existing,

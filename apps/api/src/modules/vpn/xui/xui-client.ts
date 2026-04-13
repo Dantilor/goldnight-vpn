@@ -168,6 +168,30 @@ export class ThreeXUiClient {
     return this.apiGetJson<XuiInboundRow>(`/inbounds/get/${id}`);
   }
 
+  /** True if this VLESS client id is present on the configured inbound (panel source of truth). */
+  async clientExistsInInbound(clientUuid: string): Promise<boolean> {
+    const inbound = await this.getInbound(this.cfg.inboundId);
+    const raw = inbound?.settings;
+    if (typeof raw !== 'string' || !raw.trim()) {
+      return false;
+    }
+    let settings: { clients?: unknown };
+    try {
+      settings = JSON.parse(raw) as { clients?: unknown };
+    } catch {
+      return false;
+    }
+    const clients = settings.clients;
+    if (!Array.isArray(clients)) {
+      return false;
+    }
+    return clients.some((c) => {
+      if (!c || typeof c !== 'object') return false;
+      const id = (c as { id?: string }).id;
+      return typeof id === 'string' && id === clientUuid;
+    });
+  }
+
   /**
    * Add a single VLESS client. Body matches 3x-ui model.Inbound: id + settings JSON string
    * with a clients array containing only the new client. Server-side AddInboundClient appends
