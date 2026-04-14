@@ -1,4 +1,4 @@
-import { createReadStream } from 'node:fs';
+﻿import { createReadStream } from 'node:fs';
 import type { Context } from 'telegraf';
 import { Markup } from 'telegraf';
 import { BUTTONS } from '../constants/buttons.js';
@@ -20,10 +20,10 @@ async function replyWelcomeText(
 ): Promise<{ message_id: number }> {
   const { webApp, urlOnly } = accessKeyboards(entryUrl);
   try {
-    return await ctx.reply(text, webApp);
+    return await ctx.reply(text, { ...webApp, parse_mode: 'HTML' });
   } catch (err) {
     console.error('[start] reply with web_app button failed, falling back to url button', err);
-    return await ctx.reply(text, urlOnly);
+    return await ctx.reply(text, { ...urlOnly, parse_mode: 'HTML' });
   }
 }
 
@@ -100,7 +100,7 @@ export async function handleStart(input: {
     console.error('[start] failed to send welcome', err);
     try {
       const m = await input.ctx.reply(
-        'Не удалось отправить приветствие целиком. Напишите /start ещё раз или откройте приложение по ссылке из меню бота.',
+        'Не удалось отправить приветствие целиком. Напишите /start ещё раз или откройте приложение по кнопке ниже.',
         accessKeyboards(entryUrl).urlOnly
       );
       sentMessageId = m.message_id;
@@ -117,3 +117,4 @@ export async function handleStart(input: {
     );
   }
 }
+

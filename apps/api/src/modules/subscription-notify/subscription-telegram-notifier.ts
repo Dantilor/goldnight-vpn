@@ -1,4 +1,4 @@
-import type { ApiEnv } from '@goldnight/config';
+﻿import type { ApiEnv } from '@goldnight/config';
 import type { DataLayer, SubscriptionNotificationTypeName } from '../../lib/data-layer.js';
 
 const DAY_MS = 86_400_000;
@@ -73,7 +73,7 @@ export class SubscriptionTelegramNotifier {
     const text =
       '<b>Подписка закончилась</b>\n\nДоступ к VPN остановлен. Продлите подписку в приложении и заново выдайте ключ (раздел «Подключение»).';
     const markup = {
-      inline_keyboard: [[{ text: 'Продлить подписку', web_app: { url: miniAppWebUrl(this.env, 'plans') } }]]
+      inline_keyboard: [[{ text: 'Продлить доступ', web_app: { url: miniAppWebUrl(this.env, 'plans') } }]]
     };
     try {
       await this.tgSend(user.telegramUserId, text, markup);
@@ -103,12 +103,7 @@ export class SubscriptionTelegramNotifier {
     });
     const text = `<b>Подписка активирована</b>\n\nОплата прошла успешно.\nВаш тариф: ${escapeHtml(sub.plan.name)}\nДоступ действует до ${escapeHtml(ends)}.`;
     const markup = {
-      inline_keyboard: [
-        [
-          { text: 'Mini App', web_app: { url: miniAppWebUrl(this.env, 'home') } },
-          { text: 'Открыть VPN', web_app: { url: miniAppWebUrl(this.env, 'connect') } }
-        ]
-      ]
+      inline_keyboard: [[{ text: 'Открыть VPN', web_app: { url: miniAppWebUrl(this.env, 'connect') } }]]
     };
     try {
       await this.tgSend(user.telegramUserId, text, markup);
@@ -128,13 +123,13 @@ export class SubscriptionTelegramNotifier {
         await this.trySendReminder(row, 'expires_in_5_days', {
           title: 'Подписка скоро закончится',
           body: 'До окончания подписки осталось 5 дней.\nПродлите доступ заранее, чтобы не потерять подключение.',
-          buttonText: 'Продлить подписку'
+          buttonText: 'Продлить доступ'
         });
       } else if (days === 1) {
         await this.trySendReminder(row, 'expires_in_1_day', {
           title: 'Подписка заканчивается завтра',
           body: 'До окончания подписки остался 1 день.\nЧтобы доступ не прерывался, продлите подписку заранее.',
-          buttonText: 'Продлить подписку'
+          buttonText: 'Продлить доступ'
         });
       }
     }
@@ -173,3 +168,4 @@ export class SubscriptionTelegramNotifier {
     }
   }
 }
+

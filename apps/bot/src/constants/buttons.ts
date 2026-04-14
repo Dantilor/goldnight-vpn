@@ -1,5 +1,5 @@
 export const BUTTONS = {
-  getAccess: 'Подключение',
+  getAccess: 'Подключить VPN',
   openApp: 'Открыть приложение',
   mySubscription: 'Моя подписка',
   setupVpn: 'Подключение',
