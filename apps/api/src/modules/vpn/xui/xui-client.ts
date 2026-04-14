@@ -1,4 +1,8 @@
 import { buildVlessUri, vlessShareLinkUsesXhttpTransport } from './build-vless-uri.js';
+import {
+  buildVlessShareUriFromInboundStream,
+  findClientFlowInInboundSettings
+} from './vless-share-from-inbound-stream.js';
 
 export type XuiClientConfig = {
   host: string;
@@ -41,6 +45,8 @@ export type XuiInboundRow = {
   port?: number;
   remark?: string;
   settings?: string;
+  /** Inbound stream settings (JSON string or object) — source of truth for panel share links. */
+  streamSettings?: string | Record<string, unknown>;
 };
 
 export type XuiAddClientInput = {
@@ -251,6 +257,32 @@ export class ThreeXUiClient {
         ? { extraQuery: this.cfg.vlessExtraQuery }
         : {})
     });
+  }
+
+  /**
+   * Same raw vless:// line as the 3x-ui panel export (query from inbound streamSettings, not env template).
+   * Falls back to {@link buildVlessLink} when inbound data is missing or unsupported (e.g. REALITY).
+   */
+  async buildVlessShareLinkMatchingPanel(uuid: string, clientEmail: string): Promise<string> {
+    try {
+      const inbound = await this.getInbound(this.cfg.inboundId);
+      const port = typeof inbound.port === 'number' && inbound.port > 0 ? inbound.port : this.cfg.publicPort;
+      const clientFlow = findClientFlowInInboundSettings(inbound.settings, uuid);
+      const fromStream = buildVlessShareUriFromInboundStream({
+        uuid,
+        publicHost: this.cfg.publicHost,
+        port,
+        clientEmail,
+        streamSettings: inbound.streamSettings,
+        ...(clientFlow ? { clientFlow } : {})
+      });
+      if (fromStream) {
+        return fromStream;
+      }
+    } catch {
+      // fall through
+    }
+    return this.buildVlessLink(uuid);
   }
 }
 

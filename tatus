@@ -1,0 +1,41 @@
+warning: in the working copy of 'apps/web/src/screens/connect-screen.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'apps/web/src/screens/profile-screen.tsx', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/apps/web/src/screens/connect-screen.tsx b/apps/web/src/screens/connect-screen.tsx[m
+[1mindex 893602c..bbe6c4f 100644[m
+[1m--- a/apps/web/src/screens/connect-screen.tsx[m
+[1m+++ b/apps/web/src/screens/connect-screen.tsx[m
+[36m@@ -175,7 +175,7 @@[m [mexport function ConnectScreen() {[m
+   ] as const;[m
+ [m
+   return ([m
+[31m-    <div className="gn-page-stack mx-auto max-w-md px-1 pt-2 sm:px-0">[m
+[32m+[m[32m    <div className="gn-page-stack mx-auto max-w-md px-1 pt-6 sm:px-0">[m
+       <section className="text-left">[m
+         {subscription.isError ? ([m
+           <div className="rounded-2xl border border-outline-variant/20 bg-surface-container-low p-5">[m
+[1mdiff --git a/apps/web/src/screens/plans-screen.tsx b/apps/web/src/screens/plans-screen.tsx[m
+[1mindex 2b3e52a..f743924 100644[m
+[1m--- a/apps/web/src/screens/plans-screen.tsx[m
+[1m+++ b/apps/web/src/screens/plans-screen.tsx[m
+[36m@@ -133,7 +133,7 @@[m [mexport function PlansScreen() {[m
+   }[m
+ [m
+   return ([m
+[31m-    <div className="gn-page-stack pt-2">[m
+[32m+[m[32m    <div className="gn-page-stack pt-7">[m
+       <header className="space-y-2.5 text-left">[m
+         <span className="block font-body text-[10px] font-semibold uppercase tracking-[0.22em] text-primary">[m
+           Подписка[m
+[1mdiff --git a/apps/web/src/screens/profile-screen.tsx b/apps/web/src/screens/profile-screen.tsx[m
+[1mindex 5869d17..3782737 100644[m
+[1m--- a/apps/web/src/screens/profile-screen.tsx[m
+[1m+++ b/apps/web/src/screens/profile-screen.tsx[m
+[36m@@ -136,7 +136,7 @@[m [mexport function ProfileScreen() {[m
+   };[m
+ [m
+   return ([m
+[31m-    <div className="gn-page-stack pt-2">[m
+[32m+[m[32m    <div className="gn-page-stack pt-5">[m
+       <section className="relative">[m
+         <div className="flex items-center gap-5 p-2">[m
+           <div className="relative">[m

@@ -92,7 +92,8 @@ export class XuiVpnProvider implements VpnProvider {
       ...(this.vlessFlow !== undefined && this.vlessFlow !== '' ? { flow: this.vlessFlow } : {})
     });
 
-    const vless = this.xui.buildVlessLink(uuid);
+    /** Match 3x-ui panel share link (inbound streamSettings), not env-based `buildVlessLink`. */
+    const vless = await this.xui.buildVlessShareLinkMatchingPanel(uuid, email);
 
     return {
       userId,
