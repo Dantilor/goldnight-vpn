@@ -1,10 +1,8 @@
-﻿import { createReadStream } from 'node:fs';
-import type { Context } from 'telegraf';
+﻿import type { Context } from 'telegraf';
 import { Markup } from 'telegraf';
 import { BUTTONS } from '../constants/buttons.js';
 import { MESSAGES } from '../constants/messages.js';
 import { appUrl } from '../lib/mini-app-url.js';
-import { resolveWelcomeImagePath } from '../lib/welcome-asset.js';
 import type { WelcomeSentStore } from '../services/welcome-sent-store.js';
 
 const SIMPLE_START_REPLY = process.env.BOT_DEBUG_SIMPLE_START_REPLY === '1';
@@ -91,24 +89,6 @@ export async function handleStart(input: {
       sentMessageId = simple.message_id;
       console.info('[start] simple reply sent', { messageId: sentMessageId });
     } else {
-      if (!alreadyWelcomed) {
-        const imagePath = resolveWelcomeImagePath();
-        if (imagePath) {
-          try {
-            await input.ctx.replyWithPhoto(
-              { source: createReadStream(imagePath) },
-              { caption: MESSAGES.welcomePhotoCaption }
-            );
-          } catch (err) {
-            console.error('[start] welcome photo failed (continuing with text only)', err);
-          }
-        } else {
-          console.warn(
-            'Welcome image not found: place apps/bot/assets/welcome.png or set WELCOME_IMAGE_PATH to an existing file.'
-          );
-        }
-      }
-
       console.info('[start] sending welcome text', { alreadyWelcomed, entryUrl });
       const m = await replyWelcomeText(input.ctx, MESSAGES.welcomeFullCaption, entryUrl);
       sentMessageId = m.message_id;
