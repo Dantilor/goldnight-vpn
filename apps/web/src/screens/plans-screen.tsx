@@ -232,6 +232,7 @@ export function PlansScreen() {
                 const priceLabel = `${plan.priceRub.toLocaleString('ru-RU')} ₽`;
                 const payingThis = pendingPlanId === plan.id;
                 const checkoutBusy = Boolean(pendingPlanId) || mePending;
+                const actionDisabled = Boolean(isCurrent) || checkoutBusy;
 
                 return (
                   <div
@@ -283,8 +284,8 @@ export function PlansScreen() {
                         type="button"
                         className="min-w-[140px] shrink-0 py-3 text-xs font-bold uppercase tracking-wider"
                         variant={isCurrent ? 'secondary' : isStandard && !isCurrent ? 'primary' : 'secondary'}
-                        disabled={Boolean(isCurrent)}
-                        aria-disabled={isCurrent}
+                        disabled={actionDisabled}
+                        aria-disabled={actionDisabled}
                         onClick={() => {
                           if (isCurrent) return;
                           if (pendingPlanId === plan.id) return;
