@@ -488,39 +488,6 @@ export function VpnActiveAccessSection({
           </div>
         </div>
 
-        <div className="mt-4 rounded-2xl border border-outline-variant/12 bg-surface-container-low/90 p-4">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary/80">Инструкция подключения</p>
-          <h4 className="mt-1 font-headline text-lg font-bold text-white">Что сделать после установки клиента</h4>
-          <p className="mt-1 text-xs text-on-surface-variant">
-            Короткий сценарий для запуска VPN после импорта подписки.
-          </p>
-          <ol className="mt-3 space-y-2.5">
-            <li className="flex gap-3 text-[13px] leading-snug text-on-surface-variant">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[11px] font-bold text-primary">
-                1
-              </span>
-              <span className="pt-0.5">Установите выбранное приложение для вашей платформы.</span>
-            </li>
-            <li className="flex gap-3 text-[13px] leading-snug text-on-surface-variant">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[11px] font-bold text-primary">
-                2
-              </span>
-              <span className="pt-0.5">Добавьте подписку через кнопку, ссылку или QR-код.</span>
-            </li>
-            <li className="flex gap-3 text-[13px] leading-snug text-on-surface-variant">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[11px] font-bold text-primary">
-                3
-              </span>
-              <span className="pt-0.5">Откройте приложение и выберите импортированный профиль.</span>
-            </li>
-            <li className="flex gap-3 text-[13px] leading-snug text-on-surface-variant">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[11px] font-bold text-primary">
-                4
-              </span>
-              <span className="pt-0.5">Включите VPN и при необходимости выберите сервер/узел.</span>
-            </li>
-          </ol>
-        </div>
       </section>
 
       <VpnQrFlowSheet

@@ -266,9 +266,9 @@ export function defaultAppClientForPlatform(platform: DevicePlatform): VpnAppCli
 export function availableAppClientsForPlatform(platform: DevicePlatform): VpnAppClientId[] {
   switch (platform) {
     case 'ios':
-      return ['hiddify', 'streisand', 'shadowrocket', 'stash', 'happ', 'v2ray'];
+      return ['v2ray', 'streisand', 'happ', 'hiddify', 'shadowrocket', 'stash'];
     case 'android':
-      return ['hiddify', 'v2rayng', 'flclashx', 'clash_meta', 'happ'];
+      return ['v2rayng', 'happ', 'hiddify', 'flclashx', 'clash_meta'];
     case 'windows':
       return ['happ', 'flclashx', 'koala_clash', 'prizrak_box'];
     case 'macos':
@@ -293,9 +293,9 @@ export const VPN_INSTRUCTION_PLATFORMS: InstructionPlatform[] = [
 export function availableInstructionAppClientsForPlatform(platform: InstructionPlatformId): VpnAppClientId[] {
   switch (platform) {
     case 'ios':
-      return ['hiddify', 'streisand', 'shadowrocket', 'stash', 'happ', 'v2ray'];
+      return ['v2ray', 'streisand', 'happ', 'hiddify', 'shadowrocket', 'stash'];
     case 'android':
-      return ['hiddify', 'v2rayng', 'flclashx', 'clash_meta', 'happ'];
+      return ['v2rayng', 'happ', 'hiddify', 'flclashx', 'clash_meta'];
     case 'apple_tv':
       return ['happ', 'shadowrocket', 'stash'];
     case 'android_tv':
