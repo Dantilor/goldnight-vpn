@@ -11,6 +11,18 @@ function escapeHtml(s: string): string {
     .replaceAll('"', '&quot;');
 }
 
+function formatSubscriptionPeriod(days: number): string {
+  if (days % 365 === 0) {
+    const years = days / 365;
+    return `${years} ${years === 1 ? 'год' : years < 5 ? 'года' : 'лет'}`;
+  }
+  if (days % 30 === 0) {
+    const months = days / 30;
+    return `${months} ${months === 1 ? 'месяц' : months < 5 ? 'месяца' : 'месяцев'}`;
+  }
+  return `${days} дн.`;
+}
+
 /** Build Mini App HTTPS URL with hash route (Telegram `web_app` buttons). */
 export function miniAppWebUrl(env: ApiEnv, route: string): string {
   const base = env.TELEGRAM_WEBAPP_URL.replace(/\/+$/, '');
@@ -101,7 +113,21 @@ export class SubscriptionTelegramNotifier {
       month: '2-digit',
       year: 'numeric'
     });
-    const text = `<b>Подписка активирована</b>\n\nОплата прошла успешно.\nВаш тариф: ${escapeHtml(sub.plan.name)}\nДоступ действует до ${escapeHtml(ends)}.`;
+    const access = await this.dataLayer.getLatestActiveVpnAccessByUserId(userId);
+    const key =
+      access?.value?.trim() ||
+      access?.qrValue?.trim() ||
+      access?.configFileUrl?.trim() ||
+      'Будет доступен в Mini App сразу после выдачи.';
+    const period = formatSubscriptionPeriod(sub.plan.durationDays);
+    const text =
+      `✅ <b>Оплата успешно проведена!</b>\n\n` +
+      `📦 Тариф: ${escapeHtml(sub.plan.name)}\n` +
+      `📆 Период: ${escapeHtml(period)}\n` +
+      `📆 Действует до: ${escapeHtml(ends)}\n\n` +
+      `🔑 Ваш ключ подключения:\n` +
+      `${escapeHtml(key)}\n\n` +
+      `Используйте кнопку «Открыть VPN» для подключения.`;
     const markup = {
       inline_keyboard: [[{ text: 'Открыть VPN', web_app: { url: miniAppWebUrl(this.env, 'connect') } }]]
     };
