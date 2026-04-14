@@ -62,7 +62,7 @@ export type PlatformClientRow = {
 export const VPN_PLATFORM_CLIENTS: PlatformClientRow[] = [
   {
     id: 'ios',
-    osLabel: 'iPhone / iPad',
+    osLabel: 'iOS',
     icon: 'phone_iphone',
     clients: [
       {

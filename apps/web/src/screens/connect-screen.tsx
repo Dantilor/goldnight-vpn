@@ -20,12 +20,17 @@ import {
   appClientToApiClient,
   defaultAppClientForPlatform,
   availableAppClientsForPlatform,
+  VPN_PLATFORM_CLIENTS,
   VPN_APP_LABEL,
   type VpnAppClientId
 } from '../config/vpn-client-apps';
 
 const platforms: DevicePlatform[] = ['ios', 'android', 'macos', 'windows', 'linux'];
 const SUPPORT_TELEGRAM = 'https://t.me/GameNightHelp';
+
+function platformDisplayName(item: DevicePlatform): string {
+  return VPN_PLATFORM_CLIENTS.find((p) => p.id === item)?.osLabel ?? item;
+}
 
 function renderAccessContent(
   payload: ConnectPayload | null,
@@ -170,8 +175,8 @@ export function ConnectScreen() {
   ] as const;
 
   return (
-    <div className="mx-auto min-h-screen max-w-md px-1 pb-32 sm:px-0">
-      <section className="mb-8 text-left">
+    <div className="gn-page-stack mx-auto max-w-md px-1 sm:px-0">
+      <section className="text-left">
         {subscription.isError ? (
           <div className="rounded-2xl border border-outline-variant/20 bg-surface-container-low p-5">
             <ErrorBlock text={(subscription.error as Error).message} />
@@ -346,10 +351,13 @@ export function ConnectScreen() {
         />
       ) : (
         <>
-          <section className="mb-8 rounded-2xl border border-outline-variant/10 bg-surface-container-low/90 p-4 shadow-inner">
+          <section className="rounded-2xl border border-outline-variant/10 bg-surface-container-low/90 p-4 shadow-inner">
             <div className="mb-4 text-center">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary/75">Подключение</p>
-              <h3 className="mt-1 font-headline text-lg font-bold text-white">Четыре шага</h3>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary/75">Инструкция</p>
+              <h3 className="mt-1 font-headline text-xl font-bold text-white">Как подключить VPN</h3>
+              <p className="mt-2 text-xs text-on-surface-variant">
+                Выберите устройство и выполните несколько простых шагов.
+              </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               {onboardingSteps.map((step) => (
@@ -379,9 +387,9 @@ export function ConnectScreen() {
             </div>
           </section>
 
-          <section className="mb-10">
+          <section>
             <div className="mb-6 flex items-end justify-between">
-              <h3 className="font-headline text-lg font-bold tracking-tight text-white">Платформа</h3>
+              <h3 className="font-headline text-lg font-bold tracking-tight text-white">Выбор платформы</h3>
               <span className="text-[10px] font-bold uppercase tracking-widest text-outline-variant">VLESS</span>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -410,14 +418,14 @@ export function ConnectScreen() {
                     <span className="material-symbols-outlined mb-3 block text-2xl text-on-surface-variant group-hover:text-primary">
                       {icon}
                     </span>
-                    <p className="text-sm font-semibold capitalize text-white">{item}</p>
+                    <p className="text-sm font-semibold text-white">{platformDisplayName(item)}</p>
                   </button>
                 );
               })}
             </div>
           </section>
 
-          <section className="mb-8 rounded-xl border border-outline-variant/10 bg-surface-container-low/50 px-4 py-4">
+          <section className="rounded-xl border border-outline-variant/10 bg-surface-container-low/50 px-4 py-4">
             <h3 className="font-headline text-sm font-bold tracking-tight text-white">Дальше по экрану</h3>
             <p className="mt-2 text-[12px] leading-relaxed text-on-surface-variant">
               Выберите ОС и приложение из поддерживаемого списка, затем нажмите «Загрузить действия».

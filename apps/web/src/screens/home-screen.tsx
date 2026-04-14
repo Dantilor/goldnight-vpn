@@ -62,7 +62,7 @@ export function HomeScreen() {
   );
 
   return (
-    <div className="space-y-8">
+    <div className="gn-page-stack">
       <section className="space-y-1.5 text-center">
         <p className="font-body text-[11px] font-semibold uppercase tracking-[0.22em] text-primary">
           GoldNight VPN

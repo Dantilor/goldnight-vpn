@@ -13,7 +13,7 @@ export function SubscriptionScreen() {
     : 'Ваш доступ к сети Golden Night сейчас приостановлен. Продлите подписку для восстановления защиты.';
 
   return (
-    <div className="relative mx-auto max-w-lg space-y-8">
+    <div className="gn-page-stack relative mx-auto max-w-lg">
       {isPending ? (
         <div className="mb-4 rounded-xl border border-outline-variant/20 bg-surface-container-low p-4">
           <LoadingBlock text="Загрузка подписки..." />

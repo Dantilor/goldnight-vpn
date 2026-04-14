@@ -38,6 +38,7 @@ a {
   /* Top inset: 0 = только CSS fallback; в Mini App задаётся из JS (contentSafeAreaInset + буфер) */
   --gn-app-padding-top: 0px;
   --gn-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --gn-bottom-nav-height: 76px;
 }
 
 /**
@@ -45,14 +46,22 @@ a {
  * Задаётся на <main> в AppShell.
  */
 .gn-app-main-padding-top {
-  padding-top: max(
-    var(--gn-app-padding-top),
-    max(1.25rem, env(safe-area-inset-top, 0px))
-  );
+  padding-top: max(var(--gn-app-padding-top), env(safe-area-inset-top, 0px), 2.6rem);
 }
 
 .gn-safe-bottom {
   padding-bottom: max(0.5rem, var(--gn-safe-bottom));
+}
+
+.gn-page-main {
+  min-height: 100dvh;
+  padding-bottom: calc(var(--gn-bottom-nav-height) + max(1rem, env(safe-area-inset-bottom, 0px)));
+}
+
+.gn-page-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
 }
 
 .gn-gold-gradient {

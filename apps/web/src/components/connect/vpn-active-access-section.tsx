@@ -295,12 +295,12 @@ export function VpnActiveAccessSection({
         </section>
       ) : null}
 
-      <section id="vpn-client-guide" className="mb-10 scroll-mt-6">
+      <section id="vpn-client-guide" className="mb-10 scroll-mt-24">
         <div className="mb-4">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary/80">Устройство</p>
-          <h3 className="mt-1 font-headline text-lg font-bold text-white">Платформа и приложение</h3>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary/80">Инструкция</p>
+          <h3 className="mt-1 font-headline text-xl font-bold text-white">Как подключить VPN</h3>
           <p className="mt-1 text-xs text-on-surface-variant">
-            Доступ по VLESS — выберите ОС и совместимое приложение из списка ниже.
+            Выберите устройство, приложение и выполните несколько простых шагов.
           </p>
         </div>
 

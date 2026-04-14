@@ -136,7 +136,7 @@ export function ProfileScreen() {
   };
 
   return (
-    <div className="space-y-8 pb-4">
+    <div className="gn-page-stack">
       <section className="relative">
         <div className="flex items-center gap-5 p-2">
           <div className="relative">
