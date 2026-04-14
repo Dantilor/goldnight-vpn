@@ -167,18 +167,18 @@ export function VpnActiveAccessSection({
     switch (instructionPlatform) {
       case 'ios':
       case 'apple_tv':
-        return 'Открыть в App Store';
+        return 'Установить приложение (App Store)';
       case 'android':
       case 'android_tv':
-        return 'Открыть в Google Play';
+        return 'Установить приложение (Google Play)';
       case 'windows':
-        return 'Скачать для Windows';
+        return 'Установить приложение (Windows)';
       case 'macos':
-        return 'Скачать для macOS';
+        return 'Установить приложение (macOS)';
       case 'linux':
-        return 'Скачать для Linux';
+        return 'Установить приложение (Linux)';
       default:
-        return 'Открыть страницу загрузки';
+        return 'Установить приложение';
     }
   }, [instructionPlatform]);
 
