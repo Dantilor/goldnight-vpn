@@ -133,7 +133,7 @@ export function PlansScreen() {
   }
 
   return (
-    <div className="gn-page-stack">
+    <div className="gn-page-stack pt-2">
       <header className="space-y-2.5 text-left">
         <span className="block font-body text-[10px] font-semibold uppercase tracking-[0.22em] text-primary">
           Подписка

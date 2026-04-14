@@ -25,9 +25,11 @@ declare global {
   }
 }
 
-const GN_TOP_BUFFER_PX = 12;
+const GN_TOP_BUFFER_PX = 20;
 /** Если клиент не отдаёт insets (старый Telegram / десктоп) */
-const GN_TELEGRAM_FALLBACK_TOP_PX = 52;
+const GN_TELEGRAM_FALLBACK_TOP_PX = 72;
+/** Минимальный старт контента ниже telegram header controls. */
+const GN_MIN_TOP_START_PX = 72;
 
 /**
  * Вертикальный отступ под шапку Telegram Mini App + safe area.
@@ -47,10 +49,11 @@ export function applyMiniAppContentInsets(): void {
     if (contentTop > 0) {
       px = contentTop + GN_TOP_BUFFER_PX;
     } else if (safeTop > 0) {
-      px = safeTop + 28;
+      px = safeTop + 40;
     } else {
       px = GN_TELEGRAM_FALLBACK_TOP_PX;
     }
+    px = Math.max(px, GN_MIN_TOP_START_PX);
     document.documentElement.style.setProperty('--gn-app-padding-top', `${px}px`);
   };
 

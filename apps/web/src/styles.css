@@ -46,7 +46,7 @@ a {
  * Задаётся на <main> в AppShell.
  */
 .gn-app-main-padding-top {
-  padding-top: max(var(--gn-app-padding-top), env(safe-area-inset-top, 0px), 2.6rem);
+  padding-top: max(var(--gn-app-padding-top), env(safe-area-inset-top, 0px), 4.5rem);
 }
 
 .gn-safe-bottom {

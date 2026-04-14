@@ -175,7 +175,7 @@ export function ConnectScreen() {
   ] as const;
 
   return (
-    <div className="gn-page-stack mx-auto max-w-md px-1 sm:px-0">
+    <div className="gn-page-stack mx-auto max-w-md px-1 pt-2 sm:px-0">
       <section className="text-left">
         {subscription.isError ? (
           <div className="rounded-2xl border border-outline-variant/20 bg-surface-container-low p-5">
