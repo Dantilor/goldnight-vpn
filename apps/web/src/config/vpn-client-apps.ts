@@ -6,6 +6,7 @@ export type VpnAppClientId =
   | 'streisand'
   | 'shadowrocket'
   | 'stash'
+  | 'v2ray'
   | 'v2rayng'
   | 'flclashx'
   | 'clash_meta'
@@ -19,6 +20,7 @@ export type VpnAppDisplayName =
   | 'Streisand'
   | 'Shadowrocket'
   | 'Stash'
+  | 'V2Ray'
   | 'v2rayNG'
   | 'FlClashX'
   | 'Clash Meta'
@@ -109,6 +111,22 @@ export const VPN_APP_DEFINITIONS: Record<VpnAppClientId, VpnAppDefinition> = {
       'Импортируйте профиль по ссылке или QR.',
       'Сохраните конфигурацию.',
       'Включите туннель.'
+    ],
+    supportsQuickImport: false,
+    fallbackMode: 'manual_steps'
+  },
+  v2ray: {
+    id: 'v2ray',
+    displayName: 'V2Ray',
+    platforms: ['ios'],
+    storeUrl: 'https://apps.apple.com/us/search?term=v2ray',
+    installTitle: 'Установка V2Ray',
+    installDescription: 'Установите совместимый V2Ray-клиент из App Store.',
+    connectInstructions: [
+      'Откройте установленный V2Ray-клиент.',
+      'Добавьте подписку по ссылке или QR.',
+      'Сохраните профиль.',
+      'Включите VPN и выберите узел.'
     ],
     supportsQuickImport: false,
     fallbackMode: 'manual_steps'
@@ -248,9 +266,9 @@ export function defaultAppClientForPlatform(platform: DevicePlatform): VpnAppCli
 export function availableAppClientsForPlatform(platform: DevicePlatform): VpnAppClientId[] {
   switch (platform) {
     case 'ios':
-      return ['hiddify', 'streisand', 'shadowrocket', 'stash'];
+      return ['hiddify', 'streisand', 'shadowrocket', 'stash', 'happ', 'v2ray'];
     case 'android':
-      return ['hiddify', 'v2rayng', 'flclashx', 'clash_meta'];
+      return ['hiddify', 'v2rayng', 'flclashx', 'clash_meta', 'happ'];
     case 'windows':
       return ['happ', 'flclashx', 'koala_clash', 'prizrak_box'];
     case 'macos':
@@ -264,20 +282,20 @@ export function availableAppClientsForPlatform(platform: DevicePlatform): VpnApp
 
 export const VPN_INSTRUCTION_PLATFORMS: InstructionPlatform[] = [
   { id: 'ios', osLabel: 'iOS', icon: 'phone_iphone' },
-  { id: 'android', osLabel: 'Android', icon: 'android' },
-  { id: 'apple_tv', osLabel: 'Apple TV', icon: 'tv' },
-  { id: 'android_tv', osLabel: 'Android TV', icon: 'tv_options_edit_channels' },
   { id: 'windows', osLabel: 'Windows', icon: 'laptop_windows' },
   { id: 'macos', osLabel: 'macOS', icon: 'laptop_mac' },
-  { id: 'linux', osLabel: 'Linux', icon: 'computer' }
+  { id: 'linux', osLabel: 'Linux', icon: 'computer' },
+  { id: 'android', osLabel: 'Android', icon: 'android' },
+  { id: 'apple_tv', osLabel: 'Apple TV', icon: 'tv' },
+  { id: 'android_tv', osLabel: 'Android TV', icon: 'tv_options_edit_channels' }
 ];
 
 export function availableInstructionAppClientsForPlatform(platform: InstructionPlatformId): VpnAppClientId[] {
   switch (platform) {
     case 'ios':
-      return ['hiddify', 'streisand', 'shadowrocket', 'stash'];
+      return ['hiddify', 'streisand', 'shadowrocket', 'stash', 'happ', 'v2ray'];
     case 'android':
-      return ['hiddify', 'v2rayng', 'flclashx', 'clash_meta'];
+      return ['hiddify', 'v2rayng', 'flclashx', 'clash_meta', 'happ'];
     case 'apple_tv':
       return ['happ', 'shadowrocket', 'stash'];
     case 'android_tv':
