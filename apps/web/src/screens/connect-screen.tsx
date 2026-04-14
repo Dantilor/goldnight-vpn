@@ -20,7 +20,7 @@ import {
   appClientToApiClient,
   defaultAppClientForPlatform,
   availableAppClientsForPlatform,
-  VPN_PLATFORM_CLIENTS,
+  VPN_INSTRUCTION_PLATFORMS,
   VPN_APP_LABEL,
   type VpnAppClientId
 } from '../config/vpn-client-apps';
@@ -29,7 +29,7 @@ const platforms: DevicePlatform[] = ['ios', 'android', 'macos', 'windows', 'linu
 const SUPPORT_TELEGRAM = 'https://t.me/GameNightHelp';
 
 function platformDisplayName(item: DevicePlatform): string {
-  return VPN_PLATFORM_CLIENTS.find((p) => p.id === item)?.osLabel ?? item;
+  return VPN_INSTRUCTION_PLATFORMS.find((p) => p.id === item)?.osLabel ?? item;
 }
 
 function renderAccessContent(

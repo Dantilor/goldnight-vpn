@@ -1,10 +1,10 @@
 import type { ConnectPayload, VpnAccess } from '../../types/api';
 import type { DevicePlatform } from '../../types/domain';
-import { VPN_APP_LABEL, VPN_PLATFORM_CLIENTS, type VpnAppClientId } from '../../config/vpn-client-apps';
+import { VPN_APP_LABEL, VPN_INSTRUCTION_PLATFORMS, type VpnAppClientId } from '../../config/vpn-client-apps';
 import type { DerivedVpnAccessFields } from './vpn-access-derive';
 
 function platformLabel(id: DevicePlatform): string {
-  return VPN_PLATFORM_CLIENTS.find((r) => r.id === id)?.osLabel ?? id;
+  return VPN_INSTRUCTION_PLATFORMS.find((r) => r.id === id)?.osLabel ?? id;
 }
 
 function accessMetaLine(payload: ConnectPayload | null, access: VpnAccess | null): string {

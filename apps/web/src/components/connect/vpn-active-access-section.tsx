@@ -1,14 +1,15 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { UseQueryResult } from '@tanstack/react-query';
 import type { ConnectPayload, VpnAccess, VpnDevicesSummary } from '../../types/api';
 import type { DevicePlatform } from '../../types/domain';
 import {
-  VPN_PLATFORM_CLIENTS,
+  VPN_APP_DEFINITIONS,
   VPN_APP_LABEL,
   appClientToApiClient,
   availableAppClientsForPlatform,
-  clientGuideMatchesApp,
-  getVpnPlatformConfig,
+  availableInstructionAppClientsForPlatform,
+  VPN_INSTRUCTION_PLATFORMS,
+  type InstructionPlatformId,
   type VpnAppClientId
 } from '../../config/vpn-client-apps';
 import { useVpnProvisionMutation, useVpnRevokeMutation } from '../../lib/query-hooks';
@@ -55,6 +56,8 @@ export function VpnActiveAccessSection({
   const [qrOpen, setQrOpen] = useState(false);
   const [revokeOpen, setRevokeOpen] = useState(false);
   const [reissueOpen, setReissueOpen] = useState(false);
+  const [instructionPlatform, setInstructionPlatform] = useState<InstructionPlatformId>(platform);
+  const [instructionApp, setInstructionApp] = useState<VpnAppClientId>(appClient);
   const [toast, setToast] = useState<{ message: string; variant: 'success' | 'error' } | null>(null);
 
   const revokeMutation = useVpnRevokeMutation();
@@ -69,14 +72,29 @@ export function VpnActiveAccessSection({
 
   const fullRaw = useMemo(() => deriveFullConnectionRaw(payload, access, fields), [payload, access, fields]);
 
-  const platformConfig = useMemo(() => getVpnPlatformConfig(platform), [platform]);
-
   const appChoices = useMemo(() => availableAppClientsForPlatform(platform), [platform]);
-
-  const filteredGuides = useMemo(
-    () => platformConfig.clients.filter((g) => clientGuideMatchesApp(g, appClient)),
-    [platformConfig.clients, appClient]
+  const instructionAppChoices = useMemo(
+    () => availableInstructionAppClientsForPlatform(instructionPlatform),
+    [instructionPlatform]
   );
+  const selectedInstructionApp = useMemo(
+    () => VPN_APP_DEFINITIONS[instructionApp],
+    [instructionApp]
+  );
+
+  useEffect(() => {
+    setInstructionPlatform(platform);
+  }, [platform]);
+
+  useEffect(() => {
+    setInstructionApp(appClient);
+  }, [appClient]);
+
+  useEffect(() => {
+    if (!instructionAppChoices.includes(instructionApp)) {
+      setInstructionApp(instructionAppChoices[0] ?? 'hiddify');
+    }
+  }, [instructionAppChoices, instructionApp]);
 
   const displayDeviceLimit =
     deviceLimitFromSubscription !== undefined
@@ -144,6 +162,27 @@ export function VpnActiveAccessSection({
       }
     );
   };
+
+  const installButtonLabel = useMemo(() => {
+    switch (instructionPlatform) {
+      case 'ios':
+      case 'apple_tv':
+        return 'Открыть в App Store';
+      case 'android':
+      case 'android_tv':
+        return 'Открыть в Google Play';
+      case 'windows':
+        return 'Скачать для Windows';
+      case 'macos':
+        return 'Скачать для macOS';
+      case 'linux':
+        return 'Скачать для Linux';
+      default:
+        return 'Открыть страницу загрузки';
+    }
+  }, [instructionPlatform]);
+
+  const isDevicePlatform = (p: InstructionPlatformId): p is DevicePlatform => p !== 'apple_tv' && p !== 'android_tv';
 
   return (
     <>
@@ -298,20 +337,23 @@ export function VpnActiveAccessSection({
       <section id="vpn-client-guide" className="mb-10 scroll-mt-24">
         <div className="mb-4">
           <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary/80">Инструкция</p>
-          <h3 className="mt-1 font-headline text-xl font-bold text-white">Как подключить VPN</h3>
+          <h3 className="mt-1 font-headline text-xl font-bold text-white">Инструкция по клиенту</h3>
           <p className="mt-1 text-xs text-on-surface-variant">
-            Выберите устройство, приложение и выполните несколько простых шагов.
+            Выберите устройство и клиент, затем установите приложение и добавьте подписку.
           </p>
         </div>
 
-        <div className="mb-5 grid grid-cols-2 gap-2.5">
-          {VPN_PLATFORM_CLIENTS.map(({ id, osLabel, icon }) => {
-            const selected = platform === id;
+        <div className="mb-5 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+          {VPN_INSTRUCTION_PLATFORMS.map(({ id, osLabel, icon }) => {
+            const selected = instructionPlatform === id;
             return (
               <button
                 key={id}
                 type="button"
-                onClick={() => onPlatformChange(id)}
+                onClick={() => {
+                  setInstructionPlatform(id);
+                  if (isDevicePlatform(id)) onPlatformChange(id);
+                }}
                 className={`flex min-h-[76px] flex-col items-start justify-center gap-1 rounded-xl border px-3 py-3 text-left transition active:scale-[0.98] ${
                   selected
                     ? 'border-primary/40 bg-primary/[0.1] shadow-[0_8px_24px_rgba(0,0,0,0.35)]'
@@ -329,63 +371,121 @@ export function VpnActiveAccessSection({
           })}
         </div>
 
-        {appChoices.length > 1 ? (
-          <div className="mb-5">
-            <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary/75">
-              Рекомендуемые приложения
-            </p>
-            <p className="mb-2.5 text-[11px] leading-snug text-on-surface-variant">
-              Поддерживаемые клиенты для выбранной системы — тот же список, что и в инструкции ниже.
-            </p>
-            <div
-              className={`grid gap-2.5 ${appChoices.length >= 3 ? 'grid-cols-1' : 'grid-cols-2'}`}
-              role="list"
-            >
-              {appChoices.map((id) => {
-                const selected = appClient === id;
-                return (
-                  <button
-                    key={id}
-                    type="button"
-                    role="listitem"
-                    onClick={() => onAppClientChange(id)}
-                    className={`min-h-[48px] rounded-xl border px-3.5 py-3 text-left text-sm font-bold transition active:scale-[0.98] ${
-                      selected
-                        ? 'border-primary/40 bg-primary/[0.1] text-white shadow-[0_8px_24px_rgba(0,0,0,0.2)]'
-                        : 'border-outline-variant/15 bg-surface-container-low text-on-surface-variant hover:border-primary/25'
-                    }`}
-                  >
-                    {VPN_APP_LABEL[id]}
-                  </button>
-                );
-              })}
-            </div>
+        <div className="mb-5">
+          <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary/75">Приложения</p>
+          <div className="grid gap-2.5">
+            {instructionAppChoices.map((id) => {
+              const selected = instructionApp === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  role="listitem"
+                  onClick={() => {
+                    setInstructionApp(id);
+                    if (appChoices.includes(id)) onAppClientChange(id);
+                  }}
+                  className={`min-h-[48px] rounded-xl border px-3.5 py-3 text-left text-sm font-bold transition active:scale-[0.98] ${
+                    selected
+                      ? 'border-primary/40 bg-primary/[0.1] text-white shadow-[0_8px_24px_rgba(0,0,0,0.2)]'
+                      : 'border-outline-variant/15 bg-surface-container-low text-on-surface-variant hover:border-primary/25'
+                  }`}
+                >
+                  {VPN_APP_LABEL[id]}
+                </button>
+              );
+            })}
           </div>
-        ) : (
-          <p className="mb-5 rounded-xl border border-outline-variant/10 bg-black/20 px-3 py-2.5 text-[12px] text-on-surface-variant">
-            Рекомендуемое приложение: <span className="font-semibold text-white">{VPN_APP_LABEL[appChoices[0]!]}</span>
-          </p>
-        )}
+        </div>
 
-        <div className="rounded-2xl border border-outline-variant/12 bg-surface-container-low/90 p-4">
-          {filteredGuides.map((clientGuide, blockIdx) => (
-            <div
-              key={`${clientGuide.appName}-${blockIdx}`}
-              className={blockIdx > 0 ? 'mt-6 border-t border-outline-variant/10 pt-6' : ''}
+        <div className="space-y-3 rounded-2xl border border-outline-variant/12 bg-surface-container-low/90 p-4">
+          <div className="rounded-xl border border-outline-variant/15 bg-black/20 p-3.5">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary/80">A. Установка приложения</p>
+            <p className="mt-2 text-sm font-semibold text-white">{selectedInstructionApp.installTitle}</p>
+            <p className="mt-1 text-[12px] text-on-surface-variant">{selectedInstructionApp.installDescription}</p>
+            <a
+              href={selectedInstructionApp.storeUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 inline-flex min-h-[44px] items-center justify-center rounded-lg border border-primary/35 bg-primary/10 px-3.5 py-2 text-xs font-bold text-primary"
             >
-              <p className="text-xs font-semibold text-primary/90">{clientGuide.appName}</p>
-              <ol className="mt-3 space-y-2.5">
-                {clientGuide.steps.map((step, i) => (
-                  <li key={i} className="flex gap-3 text-[13px] leading-snug text-on-surface-variant">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[11px] font-bold text-primary">
-                      {i + 1}
-                    </span>
-                    <span className="pt-0.5">{step}</span>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          ))}
+              {installButtonLabel}
+            </a>
+          </div>
+
+          <div className="rounded-xl border border-outline-variant/15 bg-black/20 p-3.5">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary/80">B. Добавление подписки</p>
+            {selectedInstructionApp.supportsQuickImport && fields.hasDeepLink && fields.deepLink ? (
+              <div className="mt-3 space-y-2.5">
+                <a
+                  href={fields.deepLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex min-h-[48px] items-center justify-center rounded-lg border border-primary/35 bg-primary/10 px-3 py-2 text-sm font-bold text-white"
+                >
+                  Добавить подписку
+                </a>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => void copyLink()}
+                    disabled={!fields.hasCopyLink || payloadPending}
+                    className="min-h-[44px] rounded-lg border border-outline-variant/20 bg-surface-container-highest/35 px-2.5 py-2 text-xs font-semibold text-white disabled:opacity-50"
+                  >
+                    Скопировать ссылку
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => fields.hasQr && setQrOpen(true)}
+                    disabled={!fields.hasQr || payloadPending}
+                    className="min-h-[44px] rounded-lg border border-outline-variant/20 bg-surface-container-highest/35 px-2.5 py-2 text-xs font-semibold text-white disabled:opacity-50"
+                  >
+                    Показать QR
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-3 space-y-2.5">
+                <p className="text-[12px] text-on-surface-variant">
+                  Для {selectedInstructionApp.displayName} используйте ручное добавление подписки через ссылку или QR.
+                </p>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => void copyLink()}
+                    disabled={!fields.hasCopyLink || payloadPending}
+                    className="min-h-[44px] rounded-lg border border-outline-variant/20 bg-surface-container-highest/35 px-2.5 py-2 text-xs font-semibold text-white disabled:opacity-50"
+                  >
+                    Скопировать ссылку
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => fields.hasQr && setQrOpen(true)}
+                    disabled={!fields.hasQr || payloadPending}
+                    className="min-h-[44px] rounded-lg border border-outline-variant/20 bg-surface-container-highest/35 px-2.5 py-2 text-xs font-semibold text-white disabled:opacity-50"
+                  >
+                    Показать QR
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-xl border border-outline-variant/15 bg-black/20 p-3.5">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary/80">
+              C. Подключение и использование
+            </p>
+            <ol className="mt-3 space-y-2.5">
+              {selectedInstructionApp.connectInstructions.map((step, i) => (
+                <li key={i} className="flex gap-3 text-[13px] leading-snug text-on-surface-variant">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[11px] font-bold text-primary">
+                    {i + 1}
+                  </span>
+                  <span className="pt-0.5">{step}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
         </div>
       </section>
 
