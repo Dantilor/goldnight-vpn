@@ -311,41 +311,6 @@ export function VpnActiveAccessSection({
         </a>
       ) : null}
 
-      {fullRaw.trim().length > 0 ? (
-        <section className="mb-8 rounded-2xl border border-outline-variant/15 bg-[#121212]/90 overflow-hidden">
-          <button
-            type="button"
-            onClick={() => setRawOpen((o) => !o)}
-            className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left transition hover:bg-white/[0.03]"
-            aria-expanded={rawOpen}
-          >
-            <div>
-              <p className="font-headline text-sm font-bold text-white">Полная строка подключения</p>
-              <p className="mt-0.5 text-[11px] text-on-surface-variant">
-                {rawOpen ? 'Для опытных пользователей' : 'Нажмите, чтобы показать строку'}
-              </p>
-            </div>
-            <span className={`material-symbols-outlined text-on-surface-variant transition ${rawOpen ? 'rotate-180' : ''}`}>
-              expand_more
-            </span>
-          </button>
-          {rawOpen ? (
-            <div className="space-y-3 border-t border-outline-variant/10 px-4 py-4">
-              <p className="max-h-28 overflow-y-auto break-all rounded-xl bg-black/40 p-3 font-mono text-[10px] leading-relaxed text-on-surface-variant">
-                {fullRaw}
-              </p>
-              <button
-                type="button"
-                onClick={() => void copyFullRaw()}
-                className="w-full rounded-xl border border-outline-variant/25 bg-surface-container-highest py-3.5 text-sm font-semibold text-white transition active:scale-[0.99]"
-              >
-                Скопировать полностью
-              </button>
-            </div>
-          ) : null}
-        </section>
-      ) : null}
-
       <section id="vpn-client-guide" className="mb-10 scroll-mt-24 rounded-2xl border border-outline-variant/12 bg-surface-container-low/70 p-4">
         <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary/80">Инструкция</p>
         <h3 className="mt-1 font-headline text-xl font-bold text-white">Инструкция по подключению</h3>
@@ -510,6 +475,41 @@ export function VpnActiveAccessSection({
             </div>
           </div>
         </div>
+      ) : null}
+
+      {fullRaw.trim().length > 0 ? (
+        <section className="mb-8 rounded-2xl border border-outline-variant/15 bg-[#121212]/90 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setRawOpen((o) => !o)}
+            className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left transition hover:bg-white/[0.03]"
+            aria-expanded={rawOpen}
+          >
+            <div>
+              <p className="font-headline text-sm font-bold text-white">Полная строка подключения</p>
+              <p className="mt-0.5 text-[11px] text-on-surface-variant">
+                {rawOpen ? 'Для опытных пользователей' : 'Нажмите, чтобы показать строку'}
+              </p>
+            </div>
+            <span className={`material-symbols-outlined text-on-surface-variant transition ${rawOpen ? 'rotate-180' : ''}`}>
+              expand_more
+            </span>
+          </button>
+          {rawOpen ? (
+            <div className="space-y-3 border-t border-outline-variant/10 px-4 py-4">
+              <p className="max-h-28 overflow-y-auto break-all rounded-xl bg-black/40 p-3 font-mono text-[10px] leading-relaxed text-on-surface-variant">
+                {fullRaw}
+              </p>
+              <button
+                type="button"
+                onClick={() => void copyFullRaw()}
+                className="w-full rounded-xl border border-outline-variant/25 bg-surface-container-highest py-3.5 text-sm font-semibold text-white transition active:scale-[0.99]"
+              >
+                Скопировать полностью
+              </button>
+            </div>
+          ) : null}
+        </section>
       ) : null}
 
       <VpnQrFlowSheet
