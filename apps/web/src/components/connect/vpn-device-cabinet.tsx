@@ -27,7 +27,7 @@ export type VpnDeviceCabinetProps = {
   onShowQr: () => void;
   onReissue: () => void;
   onRevoke: () => void;
-  onScrollInstructions: () => void;
+  onOpenInstructions: () => void;
 };
 
 export function VpnDeviceCabinet({
@@ -42,7 +42,7 @@ export function VpnDeviceCabinet({
   onShowQr,
   onReissue,
   onRevoke,
-  onScrollInstructions
+  onOpenInstructions
 }: VpnDeviceCabinetProps) {
   const meta = accessMetaLine(payload, access);
   const active = access?.status === 'active';
@@ -147,11 +147,11 @@ export function VpnDeviceCabinet({
 
         <button
           type="button"
-          onClick={onScrollInstructions}
+          onClick={onOpenInstructions}
           className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-outline-variant/15 py-3 text-[12px] font-semibold text-on-surface-variant transition hover:border-primary/25 hover:text-white"
         >
           <span className="material-symbols-outlined text-lg text-primary/80">menu_book</span>
-          Инструкция по клиенту
+          Инструкция по подключению
         </button>
       </div>
     </div>

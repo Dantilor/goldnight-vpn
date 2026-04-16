@@ -30,7 +30,7 @@ export type VpnAppDisplayName =
   | 'Prizrak-Box';
 
 export type AppFallbackMode = 'copy_link' | 'qr' | 'manual_steps';
-export type InstructionPlatformId = DevicePlatform | 'apple_tv' | 'android_tv';
+export type InstructionPlatformId = DevicePlatform | 'macos_intel' | 'apple_tv' | 'android_tv';
 
 export type VpnAppDefinition = {
   id: VpnAppClientId;
@@ -284,6 +284,7 @@ export const VPN_INSTRUCTION_PLATFORMS: InstructionPlatform[] = [
   { id: 'ios', osLabel: 'iOS', icon: 'phone_iphone' },
   { id: 'windows', osLabel: 'Windows', icon: 'laptop_windows' },
   { id: 'macos', osLabel: 'macOS', icon: 'laptop_mac' },
+  { id: 'macos_intel', osLabel: 'macOS Intel', icon: 'laptop_mac' },
   { id: 'linux', osLabel: 'Linux', icon: 'computer' },
   { id: 'android', osLabel: 'Android', icon: 'android' },
   { id: 'apple_tv', osLabel: 'Apple TV', icon: 'tv' },
@@ -303,6 +304,7 @@ export function availableInstructionAppClientsForPlatform(platform: InstructionP
     case 'windows':
       return ['happ', 'flclashx', 'koala_clash', 'prizrak_box'];
     case 'macos':
+    case 'macos_intel':
       return ['happ', 'flclashx', 'koala_clash', 'prizrak_box'];
     case 'linux':
       return ['flclashx', 'koala_clash', 'prizrak_box'];

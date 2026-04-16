@@ -56,6 +56,7 @@ export function VpnActiveAccessSection({
   const [qrOpen, setQrOpen] = useState(false);
   const [revokeOpen, setRevokeOpen] = useState(false);
   const [reissueOpen, setReissueOpen] = useState(false);
+  const [instructionOpen, setInstructionOpen] = useState(false);
   const [instructionPlatform, setInstructionPlatform] = useState<InstructionPlatformId>(platform);
   const [instructionApp, setInstructionApp] = useState<VpnAppClientId>(appClient);
   const [toast, setToast] = useState<{ message: string; variant: 'success' | 'error' } | null>(null);
@@ -124,9 +125,7 @@ export function VpnActiveAccessSection({
     showToast(ok ? 'Скопировано полностью' : 'Не удалось скопировать', ok ? 'success' : 'error');
   };
 
-  const scrollToInstructions = () => {
-    document.getElementById('vpn-client-guide')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
+  const openInstructions = () => setInstructionOpen(true);
 
   const handleRevoke = () => {
     revokeMutation.mutate(
@@ -182,7 +181,20 @@ export function VpnActiveAccessSection({
     }
   }, [instructionPlatform]);
 
-  const isDevicePlatform = (p: InstructionPlatformId): p is DevicePlatform => p !== 'apple_tv' && p !== 'android_tv';
+  const isDevicePlatform = (p: InstructionPlatformId): p is DevicePlatform =>
+    p !== 'apple_tv' && p !== 'android_tv' && p !== 'macos_intel';
+  const platformLabel = VPN_INSTRUCTION_PLATFORMS.find((item) => item.id === instructionPlatform)?.osLabel ?? instructionPlatform;
+  const quickImportEnabled = selectedInstructionApp.supportsQuickImport && fields.hasDeepLink && Boolean(fields.deepLink);
+  const deepLinkUrl = fields.deepLink ?? '';
+  const connectionSteps = [
+    'Установите приложение.',
+    quickImportEnabled
+      ? 'Нажмите "Добавить подписку" или используйте ссылку / QR.'
+      : 'Добавьте подписку через ссылку из буфера обмена или QR.',
+    'Разрешите VPN-подключение на устройстве, если система запросит.',
+    `Выберите профиль в ${selectedInstructionApp.displayName} и включите VPN.`,
+    'При необходимости обновите список серверов или подписку.'
+  ];
 
   return (
     <>
@@ -270,7 +282,7 @@ export function VpnActiveAccessSection({
             onShowQr={() => fields.hasQr && setQrOpen(true)}
             onReissue={() => setReissueOpen(true)}
             onRevoke={() => setRevokeOpen(true)}
-            onScrollInstructions={scrollToInstructions}
+            onOpenInstructions={openInstructions}
           />
         ) : null}
       </section>
@@ -334,161 +346,171 @@ export function VpnActiveAccessSection({
         </section>
       ) : null}
 
-      <section id="vpn-client-guide" className="mb-10 scroll-mt-24">
-        <div className="mb-4">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary/80">Инструкция</p>
-          <h3 className="mt-1 font-headline text-xl font-bold text-white">Инструкция по клиенту</h3>
-          <p className="mt-1 text-xs text-on-surface-variant">
-            Выберите устройство и клиент, затем установите приложение и добавьте подписку.
-          </p>
-        </div>
+      <section id="vpn-client-guide" className="mb-10 scroll-mt-24 rounded-2xl border border-outline-variant/12 bg-surface-container-low/70 p-4">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary/80">Инструкция</p>
+        <h3 className="mt-1 font-headline text-xl font-bold text-white">Инструкция по подключению</h3>
+        <p className="mt-1 text-xs text-on-surface-variant">Откройте отдельный экран с шагами под вашу платформу и приложение.</p>
+        <button
+          type="button"
+          onClick={openInstructions}
+          className="mt-4 flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/10 text-sm font-bold text-white transition active:scale-[0.99]"
+        >
+          <span className="material-symbols-outlined text-xl text-primary">menu_book</span>
+          Открыть инструкцию по подключению
+        </button>
+      </section>
 
-        <div className="mb-5 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-          {VPN_INSTRUCTION_PLATFORMS.map(({ id, osLabel, icon }) => {
-            const selected = instructionPlatform === id;
-            return (
+      {instructionOpen ? (
+        <div
+          className="fixed inset-0 z-[110] bg-black/80"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="instruction-title"
+        >
+          <div className="mx-auto flex h-full w-full max-w-md flex-col overflow-y-auto bg-[#0f0f0f] px-4 pb-[max(1rem,env(safe-area-inset-bottom,12px))] pt-5">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary/80">Инструкция</p>
+                <h3 id="instruction-title" className="mt-1 font-headline text-2xl font-bold text-white">
+                  Инструкция по подключению
+                </h3>
+                <p className="mt-1 text-xs text-on-surface-variant">Быстрый сценарий: установить, добавить подписку, включить VPN.</p>
+              </div>
               <button
-                key={id}
                 type="button"
-                onClick={() => {
-                  setInstructionPlatform(id);
-                  if (isDevicePlatform(id)) onPlatformChange(id);
-                }}
-                className={`flex min-h-[76px] flex-col items-start justify-center gap-1 rounded-xl border px-3 py-3 text-left transition active:scale-[0.98] ${
-                  selected
-                    ? 'border-primary/40 bg-primary/[0.1] shadow-[0_8px_24px_rgba(0,0,0,0.35)]'
-                    : 'border-outline-variant/15 bg-surface-container-low hover:border-primary/25'
-                }`}
+                onClick={() => setInstructionOpen(false)}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-outline-variant/20 text-on-surface-variant"
+                aria-label="Закрыть инструкцию"
               >
-                <span
-                  className={`material-symbols-outlined text-xl ${selected ? 'text-primary' : 'text-on-surface-variant'}`}
-                >
-                  {icon}
-                </span>
-                <span className="text-sm font-bold leading-tight text-white">{osLabel}</span>
+                <span className="material-symbols-outlined">close</span>
               </button>
-            );
-          })}
-        </div>
+            </div>
 
-        <div className="mb-5">
-          <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary/75">Приложения</p>
-          <div className="grid gap-2.5">
-            {instructionAppChoices.map((id) => {
-              const selected = instructionApp === id;
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  role="listitem"
-                  onClick={() => {
-                    setInstructionApp(id);
-                    if (appChoices.includes(id)) onAppClientChange(id);
-                  }}
-                  className={`min-h-[48px] rounded-xl border px-3.5 py-3 text-left text-sm font-bold transition active:scale-[0.98] ${
-                    selected
-                      ? 'border-primary/40 bg-primary/[0.1] text-white shadow-[0_8px_24px_rgba(0,0,0,0.2)]'
-                      : 'border-outline-variant/15 bg-surface-container-low text-on-surface-variant hover:border-primary/25'
-                  }`}
-                >
-                  {VPN_APP_LABEL[id]}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+            <div className="mb-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+              {VPN_INSTRUCTION_PLATFORMS.map(({ id, osLabel, icon }) => {
+                const selected = instructionPlatform === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => {
+                      setInstructionPlatform(id);
+                      if (isDevicePlatform(id)) onPlatformChange(id);
+                    }}
+                    className={`flex min-h-[76px] flex-col items-start justify-center gap-1 rounded-xl border px-3 py-3 text-left transition active:scale-[0.98] ${
+                      selected
+                        ? 'border-primary/40 bg-primary/[0.1] shadow-[0_8px_24px_rgba(0,0,0,0.35)]'
+                        : 'border-outline-variant/15 bg-surface-container-low hover:border-primary/25'
+                    }`}
+                  >
+                    <span className={`material-symbols-outlined text-xl ${selected ? 'text-primary' : 'text-on-surface-variant'}`}>
+                      {icon}
+                    </span>
+                    <span className="text-sm font-bold leading-tight text-white">{osLabel}</span>
+                  </button>
+                );
+              })}
+            </div>
 
-        <div className="space-y-3 rounded-2xl border border-outline-variant/12 bg-surface-container-low/90 p-4">
-          <div className="rounded-xl border border-outline-variant/15 bg-black/20 p-3.5">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary/80">A. Установка приложения</p>
-            <p className="mt-2 text-sm font-semibold text-white">{selectedInstructionApp.installTitle}</p>
-            <p className="mt-1 text-[12px] text-on-surface-variant">{selectedInstructionApp.installDescription}</p>
-            <a
-              href={selectedInstructionApp.storeUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-3 inline-flex min-h-[44px] items-center justify-center rounded-lg border border-primary/35 bg-primary/10 px-3.5 py-2 text-xs font-bold text-primary"
-            >
-              {installButtonLabel}
-            </a>
-          </div>
+            <div className="mb-4">
+              <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-primary/75">Приложение</p>
+              <div className="grid gap-2.5">
+                {instructionAppChoices.map((id) => {
+                  const selected = instructionApp === id;
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      role="listitem"
+                      onClick={() => {
+                        setInstructionApp(id);
+                        if (appChoices.includes(id)) onAppClientChange(id);
+                      }}
+                      className={`min-h-[48px] rounded-xl border px-3.5 py-3 text-left text-sm font-bold transition active:scale-[0.98] ${
+                        selected
+                          ? 'border-primary/40 bg-primary/[0.1] text-white shadow-[0_8px_24px_rgba(0,0,0,0.2)]'
+                          : 'border-outline-variant/15 bg-surface-container-low text-on-surface-variant hover:border-primary/25'
+                      }`}
+                    >
+                      {VPN_APP_LABEL[id]}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
-          <div className="rounded-xl border border-outline-variant/15 bg-black/20 p-3.5">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary/80">B. Добавление подписки</p>
-            {selectedInstructionApp.supportsQuickImport && fields.hasDeepLink && fields.deepLink ? (
-              <div className="mt-3 space-y-2.5">
+            <div className="mb-3 rounded-2xl border border-outline-variant/12 bg-surface-container-low/90 p-4">
+              <p className="text-xs font-semibold text-on-surface-variant">Платформа: <span className="text-white">{platformLabel}</span></p>
+              <p className="mt-1 text-xs font-semibold text-on-surface-variant">Приложение: <span className="text-white">{selectedInstructionApp.displayName}</span></p>
+              <a
+                href={selectedInstructionApp.storeUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-3 flex min-h-[52px] items-center justify-center rounded-xl border border-primary/35 bg-primary/10 px-3 py-2 text-sm font-bold text-white"
+              >
+                {installButtonLabel}
+              </a>
+              {quickImportEnabled ? (
                 <a
-                  href={fields.deepLink}
+                  href={deepLinkUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex min-h-[48px] items-center justify-center rounded-lg border border-primary/35 bg-primary/10 px-3 py-2 text-sm font-bold text-white"
+                  className="mt-2.5 flex min-h-[52px] items-center justify-center rounded-xl border border-primary/35 bg-primary/[0.18] px-3 py-2 text-sm font-bold text-white"
                 >
                   Добавить подписку
                 </a>
-                <div className="grid grid-cols-2 gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => void copyLink()}
-                    disabled={!fields.hasCopyLink || payloadPending}
-                    className="min-h-[44px] rounded-lg border border-outline-variant/20 bg-surface-container-highest/35 px-2.5 py-2 text-xs font-semibold text-white disabled:opacity-50"
-                  >
-                    Скопировать ссылку
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => fields.hasQr && setQrOpen(true)}
-                    disabled={!fields.hasQr || payloadPending}
-                    className="min-h-[44px] rounded-lg border border-outline-variant/20 bg-surface-container-highest/35 px-2.5 py-2 text-xs font-semibold text-white disabled:opacity-50"
-                  >
-                    Показать QR
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="mt-3 space-y-2.5">
-                <p className="text-[12px] text-on-surface-variant">
-                  Для {selectedInstructionApp.displayName} используйте ручное добавление подписки через ссылку или QR.
-                </p>
-                <div className="grid grid-cols-2 gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => void copyLink()}
-                    disabled={!fields.hasCopyLink || payloadPending}
-                    className="min-h-[44px] rounded-lg border border-outline-variant/20 bg-surface-container-highest/35 px-2.5 py-2 text-xs font-semibold text-white disabled:opacity-50"
-                  >
-                    Скопировать ссылку
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => fields.hasQr && setQrOpen(true)}
-                    disabled={!fields.hasQr || payloadPending}
-                    className="min-h-[44px] rounded-lg border border-outline-variant/20 bg-surface-container-highest/35 px-2.5 py-2 text-xs font-semibold text-white disabled:opacity-50"
-                  >
-                    Показать QR
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => void copyLink()}
+                  disabled={!fields.hasCopyLink || payloadPending}
+                  className="mt-2.5 flex min-h-[52px] w-full items-center justify-center rounded-xl border border-primary/35 bg-primary/[0.18] px-3 py-2 text-sm font-bold text-white disabled:opacity-45"
+                >
+                  Скопировать ссылку
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => fields.hasQr && setQrOpen(true)}
+                disabled={!fields.hasQr || payloadPending}
+                className="mt-2.5 flex min-h-[48px] w-full items-center justify-center rounded-xl border border-outline-variant/25 bg-surface-container-highest/30 px-3 py-2 text-sm font-semibold text-white disabled:opacity-45"
+              >
+                Показать QR
+              </button>
+            </div>
 
-          <div className="rounded-xl border border-outline-variant/15 bg-black/20 p-3.5">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary/80">
-              C. Подключение и использование
-            </p>
-            <ol className="mt-3 space-y-2.5">
-              {selectedInstructionApp.connectInstructions.map((step, i) => (
-                <li key={i} className="flex gap-3 text-[13px] leading-snug text-on-surface-variant">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[11px] font-bold text-primary">
-                    {i + 1}
-                  </span>
-                  <span className="pt-0.5">{step}</span>
-                </li>
-              ))}
-            </ol>
+            <div className="rounded-2xl border border-outline-variant/12 bg-surface-container-low/90 p-4">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary/80">Шаги подключения</p>
+              <ol className="mt-3 space-y-2.5">
+                {connectionSteps.map((step, i) => (
+                  <li key={i} className="flex gap-3 text-[13px] leading-snug text-on-surface-variant">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[11px] font-bold text-primary">
+                      {i + 1}
+                    </span>
+                    <span className="pt-0.5">{step}</span>
+                  </li>
+                ))}
+              </ol>
+              <div className="mt-4 rounded-xl border border-outline-variant/12 bg-black/20 p-3">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary/80">Коротко для {selectedInstructionApp.displayName}</p>
+                <ul className="mt-2 space-y-1.5 text-[12px] text-on-surface-variant">
+                  {selectedInstructionApp.connectInstructions.slice(0, 3).map((tip, idx) => (
+                    <li key={idx}>- {tip}</li>
+                  ))}
+                </ul>
+                <a
+                  href={selectedInstructionApp.storeUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 inline-flex min-h-[40px] items-center rounded-lg border border-outline-variant/20 px-3 text-xs font-semibold text-on-surface-variant"
+                >
+                  Подробнее
+                </a>
+              </div>
+            </div>
           </div>
         </div>
-
-      </section>
+      ) : null}
 
       <VpnQrFlowSheet
         open={qrOpen && fields.hasQr}
