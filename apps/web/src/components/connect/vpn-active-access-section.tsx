@@ -367,7 +367,7 @@ export function VpnActiveAccessSection({
           aria-modal="true"
           aria-labelledby="instruction-title"
         >
-          <div className="mx-auto flex h-full w-full max-w-md flex-col overflow-y-auto bg-[#0f0f0f] px-4 pb-[max(1rem,env(safe-area-inset-bottom,12px))] pt-5">
+          <div className="mx-auto flex h-full w-full max-w-md flex-col overflow-y-auto bg-[#0f0f0f] px-4 pb-[max(1rem,env(safe-area-inset-bottom,12px))] pt-[calc(env(safe-area-inset-top,0px)+40px)]">
             <div className="mb-4 flex items-center justify-between gap-3">
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary/80">Инструкция</p>
