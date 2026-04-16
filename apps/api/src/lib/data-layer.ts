@@ -196,6 +196,7 @@ export interface DataLayer {
   }): Promise<void>;
   updateAllVpnAccessForUser(userId: string, input: UpdateAllVpnAccessForUserInput): Promise<void>;
   revokeAllVpnAccessForUser(userId: string): Promise<void>;
+  expireAllVpnAccessForUser(userId: string): Promise<void>;
   revokeVpnAccessByUserProviderDevice(userId: string, provider: string, deviceFingerprint: string): Promise<void>;
   tryCreateSubscriptionNotificationRecord(input: {
     userId: string;
@@ -651,6 +652,13 @@ class PrismaDataLayer implements DataLayer {
     await this.db.vpnAccess.updateMany({
       where: { userId },
       data: { status: 'revoked' }
+    });
+  }
+
+  async expireAllVpnAccessForUser(userId: string): Promise<void> {
+    await this.db.vpnAccess.updateMany({
+      where: { userId, status: 'active' },
+      data: { status: 'expired' }
     });
   }
 
@@ -1258,6 +1266,15 @@ class SupabaseDataLayer implements DataLayer {
       .from('app_vpn_access_records')
       .update({ status: 'revoked', updated_at: new Date().toISOString() })
       .eq('user_id', userId);
+    if (error) throw error;
+  }
+
+  async expireAllVpnAccessForUser(userId: string): Promise<void> {
+    const { error } = await this.client
+      .from('app_vpn_access_records')
+      .update({ status: 'expired', updated_at: new Date().toISOString() })
+      .eq('user_id', userId)
+      .eq('status', 'active');
     if (error) throw error;
   }
 

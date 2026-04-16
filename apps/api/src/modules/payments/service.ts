@@ -36,7 +36,8 @@ export class YooKassaPaymentService {
     private readonly env: ApiEnv,
     private readonly dataLayer: DataLayer,
     private readonly subscriptionTelegramNotifier: SubscriptionTelegramNotifier | null,
-    private readonly revokeAllVpnForUser?: (userId: string) => Promise<void>
+    private readonly revokeAllVpnForUser?: (userId: string) => Promise<void>,
+    private readonly reprovisionVpnForUser?: (userId: string) => Promise<void>
   ) {}
 
   isConfigured(): boolean {
@@ -165,6 +166,11 @@ export class YooKassaPaymentService {
       opts?.onVpnRevokeError?.(err);
     }
     await this.dataLayer.replaceActiveSubscriptionWithNewPlan(claimed.userId, claimed.planId);
+    try {
+      await this.reprovisionVpnForUser?.(claimed.userId);
+    } catch (err) {
+      opts?.onVpnRevokeError?.(err);
+    }
     try {
       await this.subscriptionTelegramNotifier?.notifyPaymentSuccess(claimed.userId);
     } catch (err) {

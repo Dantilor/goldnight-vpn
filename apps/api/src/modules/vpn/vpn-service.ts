@@ -151,27 +151,28 @@ export class VpnService {
 
   async getUserAccess(userId: string, deviceFingerprint: string): Promise<UserVpnAccess | null> {
     const subOk = await this.dataLayer.getActiveSubscriptionByUserId(userId);
-    if (!subOk) {
-      return null;
-    }
     if (this.env.DATA_LAYER === 'supabase') {
       const pid = this.providerId();
       const access = await this.dataLayer.getVpnAccessByUserProviderDevice(userId, pid, deviceFingerprint);
       if (!access) return null;
+      const status = !subOk && access.status === 'active' ? 'expired' : access.status;
       return {
         userId,
         provider: access.provider,
         deviceFingerprint: access.deviceFingerprint,
         accessType: access.accessType as UserVpnAccess['accessType'],
-        ...(access.value ? { value: access.value } : {}),
-        ...(access.qrValue ? { qrValue: access.qrValue } : {}),
-        ...(access.configFileUrl ? { configFileUrl: access.configFileUrl } : {}),
-        ...(access.deepLinkTemplate ? { deepLinkTemplate: access.deepLinkTemplate } : {}),
+        ...(subOk && access.value ? { value: access.value } : {}),
+        ...(subOk && access.qrValue ? { qrValue: access.qrValue } : {}),
+        ...(subOk && access.configFileUrl ? { configFileUrl: access.configFileUrl } : {}),
+        ...(subOk && access.deepLinkTemplate ? { deepLinkTemplate: access.deepLinkTemplate } : {}),
         ...(access.externalAccessId ? { externalAccessId: access.externalAccessId } : {}),
         ...(access.planId ? { planId: access.planId } : {}),
         ...(access.expiresAt ? { expiresAt: access.expiresAt.toISOString() } : {}),
-        status: access.status as UserVpnAccess['status']
+        status: status as UserVpnAccess['status']
       };
+    }
+    if (!subOk) {
+      return null;
     }
     return this.provider.getUserAccess(userId, { deviceFingerprint });
   }
@@ -244,7 +245,34 @@ export class VpnService {
     for (const userId of userIds) {
       const sub = await this.dataLayer.getActiveSubscriptionByUserId(userId);
       if (!sub) {
-        await this.revokeMyVpn(userId);
+        try {
+          await this.provider.revokeAccess(userId);
+        } catch {
+          // provider-side revoke best effort
+        }
+        await this.dataLayer.expireAllVpnAccessForUser(userId);
+      }
+    }
+  }
+
+  /**
+   * After successful payment/subscription renewal, issue fresh access for the most recent devices.
+   * Keeps the payment flow non-blocking: individual device failures are ignored.
+   */
+  async reprovisionForRecentDevicesAfterPayment(userId: string): Promise<void> {
+    const sub = await this.dataLayer.getActiveSubscriptionByUserId(userId);
+    if (!sub) return;
+    const devices = await this.dataLayer.listVpnDeviceSlots(userId, this.providerId());
+    const targets = devices.slice(0, sub.plan.deviceLimit);
+    for (const d of targets) {
+      try {
+        await this.provisionMyVpn(userId, {
+          deviceFingerprint: d.deviceFingerprint,
+          platform: d.platform ?? 'unknown',
+          label: d.label ?? null
+        });
+      } catch {
+        // keep loop resilient; user can still manually provision from Mini App
       }
     }
   }

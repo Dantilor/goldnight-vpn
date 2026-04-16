@@ -16,7 +16,8 @@ export async function registerPaymentRoutes(app: FastifyInstance, ctx: AppContex
     ctx.env,
     ctx.dataLayer,
     ctx.subscriptionTelegramNotifier,
-    (userId) => ctx.vpnService.revokeMyVpn(userId)
+    (userId) => ctx.vpnService.revokeMyVpn(userId),
+    (userId) => ctx.vpnService.reprovisionForRecentDevicesAfterPayment(userId)
   );
 
   app.get('/payments/status', async () => ({

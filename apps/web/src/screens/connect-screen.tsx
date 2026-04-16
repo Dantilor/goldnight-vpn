@@ -110,6 +110,7 @@ export function ConnectScreen() {
 
   const hasActiveSubscription = subscription.data?.status === 'active';
   const hasActiveVpnAccess = access.data?.status === 'active';
+  const hasExpiredVpnAccess = access.data?.status === 'expired';
 
   const subscriptionDeviceLimit =
     subscription.data?.status === 'active' ? subscription.data.plan.deviceLimit : undefined;
@@ -291,6 +292,30 @@ export function ConnectScreen() {
                 {provisionMutation.isError ? (
                   <p className="mt-2 text-xs text-error">{(provisionMutation.error as Error).message}</p>
                 ) : null}
+              </div>
+            </div>
+          </div>
+        ) : hasExpiredVpnAccess ? (
+          <div className="relative overflow-hidden rounded-2xl border border-error/30 bg-gradient-to-br from-[#1a1414] via-surface-container-low to-[#101010] p-5 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+            <div className="relative flex gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-error/35 bg-error-container/15">
+                <span className="material-symbols-outlined text-2xl text-error" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  schedule
+                </span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-error/90">Подписка</p>
+                <h2 className="mt-1 font-headline text-xl font-bold tracking-tight text-white">Подписка закончилась</h2>
+                <p className="mt-2 text-sm leading-snug text-on-surface-variant">
+                  Доступ к VPN отозван. Продлите подписку, чтобы снова получить рабочую ссылку и подключение.
+                </p>
+                <button
+                  type="button"
+                  className="gn-gold-gradient mt-4 w-full rounded-xl px-5 py-3.5 font-headline text-sm font-bold text-[#3c2f00] shadow-[0_12px_28px_rgba(242,202,80,0.18)] transition-transform active:scale-[0.98]"
+                  onClick={() => navigate('/plans')}
+                >
+                  Продлить доступ
+                </button>
               </div>
             </div>
           </div>
