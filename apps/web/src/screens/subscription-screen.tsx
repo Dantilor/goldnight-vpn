@@ -110,13 +110,6 @@ export function SubscriptionScreen() {
       <div className="space-y-4">
         <button
           type="button"
-          className="gn-gold-gradient w-full rounded-lg py-4 font-headline font-bold tracking-tight text-[#3c2f00] shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-transform active:scale-95"
-          disabled
-        >
-          Продлить подписку
-        </button>
-        <button
-          type="button"
           className="w-full rounded-lg border border-outline-variant/15 bg-surface-container-highest py-4 font-headline font-bold tracking-tight text-white transition-all hover:bg-surface-bright"
           onClick={() => navigate('/plans')}
         >
