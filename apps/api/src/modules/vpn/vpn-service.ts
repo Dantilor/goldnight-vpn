@@ -1,5 +1,6 @@
 import type { ApiEnv } from '@goldnight/config';
 import type { ConnectPayload, DevicePlatform, UserVpnAccess, VpnClient } from '@goldnight/types';
+import type { FastifyBaseLogger } from 'fastify';
 import type { VpnProvider } from './vpn-provider.js';
 import type { DataLayer, VpnDeviceSlotRow } from '../../lib/data-layer.js';
 import { vpnProviderIdFromEnv } from './provider-id.js';
@@ -38,7 +39,8 @@ export class VpnService {
   constructor(
     private readonly env: ApiEnv,
     private readonly provider: VpnProvider,
-    private readonly dataLayer: DataLayer
+    private readonly dataLayer: DataLayer,
+    private readonly log?: FastifyBaseLogger
   ) {}
 
   private providerId(): string {
@@ -245,12 +247,21 @@ export class VpnService {
     for (const userId of userIds) {
       const sub = await this.dataLayer.getActiveSubscriptionByUserId(userId);
       if (!sub) {
+        const rows = await this.dataLayer.listVpnAccessPersistentByUserAndProvider(userId, pid);
         try {
           await this.provider.revokeAccess(userId);
-        } catch {
-          // provider-side revoke best effort
+          await this.dataLayer.expireAllVpnAccessForUser(userId);
+        } catch (err) {
+          this.log?.error(
+            {
+              err,
+              userId,
+              provider: pid,
+              externalAccessIds: rows.map((r) => r.externalAccessId).filter((v): v is string => Boolean(v))
+            },
+            'provider revoke failed during subscription expiry sweep; will retry on next tick'
+          );
         }
-        await this.dataLayer.expireAllVpnAccessForUser(userId);
       }
     }
   }

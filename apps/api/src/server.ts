@@ -62,7 +62,7 @@ async function bootstrap() {
 
   const dataLayer = createDataLayer({ env, prisma });
   const vpnProvider = createVpnProvider(env, prisma, dataLayer);
-  const vpnService = new VpnService(env, vpnProvider, dataLayer);
+  const vpnService = new VpnService(env, vpnProvider, dataLayer, app.log);
   const requireAuth = createRequireAuth({ env, dataLayer });
   const subscriptionTelegramNotifier = new SubscriptionTelegramNotifier(env, dataLayer);
 

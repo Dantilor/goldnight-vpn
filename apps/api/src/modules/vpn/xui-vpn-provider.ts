@@ -136,21 +136,21 @@ export class XuiVpnProvider implements VpnProvider {
       if (!row?.externalAccessId) {
         return;
       }
-      try {
-        await this.xui.deleteClient(row.externalAccessId);
-      } catch {
-        // ignore
-      }
+      await this.xui.deleteClient(row.externalAccessId);
       return;
     }
     const rows = await this.dataLayer.listVpnAccessPersistentByUserAndProvider(userId, 'xui');
+    const failed: string[] = [];
     for (const r of rows) {
       if (!r.externalAccessId) continue;
       try {
         await this.xui.deleteClient(r.externalAccessId);
       } catch {
-        // ignore
+        failed.push(r.externalAccessId);
       }
+    }
+    if (failed.length > 0) {
+      throw new Error(`XUI_REVOKE_FAILED:${failed.join(',')}`);
     }
   }
 
