@@ -54,7 +54,7 @@ export const VPN_APP_DEFINITIONS: Record<VpnAppClientId, VpnAppDefinition> = {
   hiddify: {
     id: 'hiddify',
     displayName: 'Hiddify',
-    platforms: ['ios', 'android'],
+    platforms: ['android'],
     storeUrl: 'https://hiddify.com/download',
     installTitle: 'Установка Hiddify',
     installDescription: 'Установите официальный клиент Hiddify из магазина приложений.',
@@ -260,13 +260,14 @@ export function defaultAppClientForPlatform(platform: DevicePlatform): VpnAppCli
   if (platform === 'macos') return 'happ';
   if (platform === 'linux') return 'flclashx';
   if (platform === 'android') return 'hiddify';
-  return 'hiddify';
+  if (platform === 'ios') return 'streisand';
+  return 'streisand';
 }
 
 export function availableAppClientsForPlatform(platform: DevicePlatform): VpnAppClientId[] {
   switch (platform) {
     case 'ios':
-      return ['v2ray', 'streisand', 'happ', 'hiddify', 'shadowrocket', 'stash'];
+      return ['v2ray', 'streisand', 'happ', 'shadowrocket', 'stash'];
     case 'android':
       return ['v2rayng', 'happ', 'hiddify', 'flclashx', 'clash_meta'];
     case 'windows':
@@ -294,7 +295,7 @@ export const VPN_INSTRUCTION_PLATFORMS: InstructionPlatform[] = [
 export function availableInstructionAppClientsForPlatform(platform: InstructionPlatformId): VpnAppClientId[] {
   switch (platform) {
     case 'ios':
-      return ['v2ray', 'streisand', 'happ', 'hiddify', 'shadowrocket', 'stash'];
+      return ['v2ray', 'streisand', 'happ', 'shadowrocket', 'stash'];
     case 'android':
       return ['v2rayng', 'happ', 'hiddify', 'flclashx', 'clash_meta'];
     case 'apple_tv':
